@@ -1,2 +1,2 @@
 # Embeded
-For 2025 Embeded
+For 2025 Embedded
