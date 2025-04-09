@@ -1,0 +1,30 @@
+# === 텍스트 파일은 LF 줄바꿈 강제 ===
+*.py      text eol=lf
+*.c       text eol=lf
+*.cpp     text eol=lf
+*.h       text eol=lf
+*.md      text eol=lf
+*.json    text eol=lf
+*.yaml    text eol=lf
+*.yml     text eol=lf
+
+# === 바이너리 파일은 Git에서 diff 무시 ===
+*.png     binary
+*.jpg     binary
+*.jpeg    binary
+*.gif     binary
+*.mp4     binary
+*.zip     binary
+*.exe     binary
+*.so      binary
+*.dll     binary
+
+# === 기본값: 모든 텍스트 파일은 LF 강제 ===
+*         text=auto eol=lf
+
+# === 문서와 코드 형식 diff 개선 ===
+*.md      diff=markdown
+*.py      diff=python
+*.c       diff=cpp
+*.cpp     diff=cpp
+*.h       diff=cpp

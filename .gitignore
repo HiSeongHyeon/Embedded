@@ -1,0 +1,102 @@
+# ======================================
+# 🐍 Python 관련
+# ======================================
+__pycache__/
+*.py[cod]
+*.so
+*.egg
+*.egg-info/
+dist/
+build/
+pip-wheel-metadata/
+.eggs/
+.env
+.venv
+venv/
+ENV/
+env/
+*.log
+
+# IPython & Jupyter
+.ipynb_checkpoints
+*.ipynb
+
+# ======================================
+# 💠 C / C++ 관련
+# ======================================
+*.out
+*.o
+*.obj
+*.so
+*.a
+*.exe
+*.dll
+*.class
+*.gch
+*.pch
+build/
+cmake-build-*/
+
+# CMake cache
+CMakeCache.txt
+CMakeFiles/
+Makefile
+cmake_install.cmake
+compile_commands.json
+
+# ======================================
+# 📁 운영체제 & 에디터 관련
+# ======================================
+# macOS
+.DS_Store
+
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# VSCode
+.vscode/
+*.code-workspace
+
+# JetBrains (PyCharm, CLion 등)
+.idea/
+*.iml
+
+# ======================================
+# 🔒 보안/환경 파일 (커밋 방지)
+# ======================================
+*.env
+.env.*
+secrets.*
+*.pem
+*.key
+*.crt
+*.cfg
+config.yml
+token.json
+
+# ======================================
+# 📷 이미지/결과물 무시 (시각화 등)
+# ======================================
+*.png
+*.jpg
+*.jpeg
+*.gif
+*.svg
+*.mp4
+*.avi
+
+# ======================================
+# 🧪 테스트 및 결과물
+# ======================================
+*.csv
+*.tsv
+*.xlsx
+*.pickle
+*.pkl
+*.db
+*.sqlite
+output/
+results/
+logs/

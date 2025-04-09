@@ -1,0 +1,22 @@
+# $ git config --global commit.template /(YOUR_WORKSPACE)/Embedded/.gitmessage
+# $ git commit (or $ git commit (file_name))
+
+# <type>(optional scope): <subject>
+# (한 줄 요약 - 50자 이내로 작성)
+
+# 본문 (선택, 여러 줄 가능, 어떻게 / 왜 변경했는지 설명)
+# - 왜 이 커밋이 필요한지
+
+# 예시 타입들:
+# feat     : 새로운 기능
+# fix      : 버그 수정
+# docs     : 문서 수정
+# style    : 포맷팅, 세미콜론 누락 등
+# refactor : 코드 리팩토링 (기능 변경 없음)
+# test     : 테스트 코드 추가/수정
+# chore    : 기타 설정, 환경파일 등
+
+# 예시
+# feat: 태양 위치를 운전자의의 그리드로 변환하는 로직을 추가함
+# fix: 좌표 반올림 문제를 수정함
+# docs(README): 설치 방법 안내를 업데이트함
