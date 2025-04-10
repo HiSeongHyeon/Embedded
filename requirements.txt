@@ -1,0 +1,6 @@
+numpy==2.2.4
+opencv-python==4.11.0.86
+
+#필요시
+pre_commit==4.2.0
+matplotlib==3.10.1
