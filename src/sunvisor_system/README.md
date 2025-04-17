@@ -4,7 +4,7 @@
 
 ```
 sunvisor_system/
-├── main.py                 # 메인 실행 파일
+├── sunvisor_system.py      # 실행 파일
 ├── mapping/                # 좌표 변환 로직
 │   ├── coordinates.py      # 카메라 → 운전자 기준 좌표 변환
 │   ├── config.py           # 매핑 관련 기본 상수 설정
@@ -20,7 +20,7 @@ sunvisor_system/
 ## 실행 방법
 
 ```bash
-python sunvisor_system/main.py
+python sunvisor_system/sunvisor_system.py
 ```
 
 ---
@@ -33,7 +33,7 @@ python sunvisor_system/main.py
 - **매개변수**:
   - `sun_center`: (x, y) 형태의 태양 중심점 좌표
 - **리턴값**: `(grid_x, grid_y)`
-- **사용 위치**: `/sunvisor_system/main.py` 또는 외부 제어 모듈에서 호출
+- **사용 위치**: `/sunvisor_system/sunvisor_system.py` 또는 외부 제어 모듈에서 호출
 
 ---
 
@@ -41,17 +41,16 @@ python sunvisor_system/main.py
 
 ```
 Grid Position: (2, 0)
-[ ] [ ] [X] [ ] [ ] ~
-[ ] [ ] [ ] [ ] [ ] ~
-[ ] [ ] [ ] [ ] [ ] ~
- ~   ~   ~   ~   ~  ~
+Grid Position as bit: [1, 0, 0, 0]
+[ ] [ ] [X] [ ]
+[ ] [ ] [ ] [ ]
+[ ] [ ] [ ] [ ]
 ```
 
 ---
 
 ## TODO
 
-- [ ] 그리드 사이즈 계산 로직 수정
 - [ ] config.py에 들어가있는 디폴트값 수정
 - [ ] test code 수정
 - [ ] 카메라 캘리브레이션
