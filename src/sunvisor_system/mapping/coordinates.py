@@ -29,7 +29,19 @@ def ray_plane_intersection(
             where t = (plane_y - origin[1]) / direction[1]
     """
     t = (plane_y - origin[1]) / direction[1]
+
     return origin + t * direction
+
+
+def to_bit_list(grid_coord: Tuple[int, int], bits: int = 4) -> list[int]:
+    """
+    grid_coord: (col, row) 각각 0~(2^bits-1) 범위인 정수를 받아,
+    [b3, b2, b1, b0] 형태의 리스트로 리턴한다.
+    """
+    num_cols, _ = get_grid_size()
+    value = grid_coord[0] * num_cols + grid_coord[1]
+
+    return [(value >> i) & 1 for i in reversed(range(bits))]
 
 
 def camera_to_driver_coords(
@@ -85,9 +97,9 @@ def camera_to_driver_coords(
     # 4. 물리적 교차점 (px, pz)을 glass_origin과 glass_size를 기반으로 grid 좌표로 매핑
     grid_cols, grid_rows = get_grid_size()
     glass_width, glass_height = glass_size
-    x_min, z_top = glass_origin  # glass_origin은 좌상단 기준 (x_min, z_top)
+    x_left, z_top = glass_origin  # glass_origin은 좌상단 기준 (x_left, z_top)
 
-    grid_x = int(((px - x_min) / glass_width) * grid_cols)
+    grid_x = int(((px - x_left) / glass_width) * grid_cols)
     grid_y = int(((z_top - pz) / glass_height) * grid_rows)
 
     grid_x = max(0, min(grid_x, grid_cols - 1))
