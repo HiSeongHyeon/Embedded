@@ -16,11 +16,14 @@ def visualize_grid_image(grid_pos):
     # 그리드 안쪽 채우기
     for y in range(rows):
         for x in range(cols):
-            if (x, y) == grid_pos:
-                color = "orange"
-            else:
-                color = "white"
-            rect = plt.Rectangle((x, y), 1, 1, color, "black")
+            color = "orange" if (x, y) == grid_pos else "white"
+            rect = plt.Rectangle(
+                (x, y),
+                1,
+                1,
+                facecolor=color,
+                edgecolor="black",
+            )
             ax.add_patch(rect)
 
     ax.set_aspect("equal")
