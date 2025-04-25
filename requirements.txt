@@ -1,7 +1,7 @@
-numpy
-opencv-python
+numpy == 2.2.4
+opencv-python == 4.11.0.86
 
 # 필요시
-# pre_commit
-# matplotlib
-# pytest
+# pre_commit == 4.2.0
+# matplotlib == 3.10.1
+# pytest == 8.3.5
