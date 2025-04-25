@@ -1,6 +1,6 @@
-from mapping import camera_to_driver_coords
-from mapping.coordinates import to_bit_list
-from visualize.grid_display import visualize_grid_image
+from .mapping import camera_to_driver_coords
+from .mapping.coordinates import to_bit_list
+from .visualize.grid_display import visualize_grid_image
 
 
 def sunvisor_system():
