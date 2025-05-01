@@ -12,6 +12,8 @@ using namespace std::chrono;
 
 int main() {
     solar_position sp;
+    sunDetector sd;
+    position_queue pq;
 
     const char* cmd =
         "libcamera-vid -t 0 -n --width 640 --height 480 --codec mjpeg -o - | "
@@ -64,16 +66,34 @@ int main() {
 
         auto start = high_resolution_clock::now();
 
-        auto sunPos = sp.getSunCoordinates(frame);
-        double area = sp.getSunArea();
+        auto brigthness = sd.isBrightArea(frame);
+
+        std::pair<int, int> sunPos;
+        std::pair<int, int> avg_sunPos;
+
+        if (brigthness) {
+            sunPos = sp.getSunCoordinates(frame);
+            pq.push(sunPos);
+
+            if (pq.shouldReturnAverage()){
+                avg_sunPos = pq.avgCoord;
+            }
+
+            double area = sp.getSunArea();
+            sp.sd.drawSun(frame);
+        }  
+        else{
+            avg_sunPos.first = -1;
+            avg_sunPos.second = -1;
+            double area = 0.0;
+        }
 
         auto end = high_resolution_clock::now();
-        auto duration = duration_cast<milliseconds>(end - start).count();
-
-        cout << "Detected sun position: (" << sunPos.first << ", " << sunPos.second << ")\n";
+        auto duration = duration_cast<milliseconds>(end - start).count();    
+        
+        cout << "Detected sun position: (" << avg_sunPos.first << ", " << avg_sunPos.second << ")\n";
         cout << "Processing time: " << duration << " ms\n";
 
-        sp.sd.drawSun(frame);
         imshow("Sun Detection", frame);
 
         if (waitKey(10) == 27) break;

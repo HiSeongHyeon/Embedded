@@ -56,3 +56,13 @@ void sunDetector::drawSun(cv::Mat& frame) const {
         cv::circle(frame, sunCenter, radius, cv::Scalar(0, 255, 255), 3);
     }
 }
+
+int sunDetector::isBrightArea(const cv::Mat& frame) {
+    cv::Mat gray;
+    cv::cvtColor(frame, gray, cv::COLOR_BGR2GRAY);
+
+    if (cv::mean(gray)[0]>50)
+        return 1;
+    else
+        return 0;
+}

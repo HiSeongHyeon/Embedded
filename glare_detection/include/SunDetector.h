@@ -18,6 +18,8 @@ public:
     std::pair<int, int> getSunCoordinates() const;
     double getDetectedArea() const;
     void drawSun(cv::Mat& frame) const;
+
+    int isBrightArea(const cv::Mat& frame);
 };
 
 #endif
