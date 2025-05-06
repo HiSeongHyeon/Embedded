@@ -13,22 +13,22 @@ from .config import (
     DEFAULT_GLASS_ORIGIN,
     DEFAULT_GLASS_SIZE,
     DEFAULT_IMAGE_SIZE,
-    DEFAULT_WINDSHIELD_Y,
+    DEFAULT_WINDSHIELD_Z,
 )
 from .get_grid_size import get_grid_size
 
 
 def ray_plane_intersection(
-    origin: np.ndarray, direction: np.ndarray, plane_y: float
+    origin: np.ndarray, direction: np.ndarray, plane_z: float
 ) -> np.ndarray:
     """
     운전자 좌표계에서, origin에서 출발한 정규화된 direction 방향의 ray와
     y = plane_y 평면과의 교차점을 계산
 
     Ray 방정식: P = origin + t * direction,
-            where t = (plane_y - origin[1]) / direction[1]
+            where t = (plane_z - origin[2]) / direction[2]
     """
-    t = (plane_y - origin[1]) / direction[1]
+    t = (plane_z - origin[2]) / direction[2]
 
     return origin + t * direction
 
@@ -50,7 +50,7 @@ def camera_to_driver_coords(
     fov: Tuple[float, float] = DEFAULT_FOV,
     camera_pos: Tuple[float, float, float] = DEFAULT_CAMERA_POS,
     driver_eye_pos: Tuple[float, float, float] = DEFAULT_DRIVER_POS,
-    windshield_y: float = DEFAULT_WINDSHIELD_Y,
+    windshield_z: float = DEFAULT_WINDSHIELD_Z,
     glass_size: Tuple[float, float] = DEFAULT_GLASS_SIZE,
     glass_origin: Tuple[float, float] = DEFAULT_GLASS_ORIGIN,
 ) -> Tuple[int, int]:
@@ -83,24 +83,25 @@ def camera_to_driver_coords(
     # 2. 카메라 좌표계에서 fov를 고려하여 방향 벡터를 계산
     angle_x = math.radians(norm_x * (fov_x / 2))
     angle_y = math.radians(norm_y * (fov_y / 2))
-    dx = math.tan(angle_x)
-    dy = 1.0  # 카메라 기본 전방은 +y 방향
-    dz = -math.tan(angle_y)
-    D = np.array([dx, dy, dz])
+    # (u,v,w)는 방향 벡터 좌표계 축은 (x,y,z)와 동일
+    du = math.tan(angle_x)
+    dv = -math.tan(angle_y)
+    dw = 1.0  # 카메라 기본 전방은 +z(+w) 방향
+    D = np.array([du, dv, dw])
     D /= np.linalg.norm(D)
 
     # 3. 광선의 원점은 driver_eye_pos로 설정
     origin_arr = np.array(driver_eye_pos)
-    intersection = ray_plane_intersection(origin_arr, D, windshield_y)
-    px, _, pz = intersection
+    intersection = ray_plane_intersection(origin_arr, D, windshield_z)
+    px, py, _ = intersection
 
     # 4. 물리적 교차점 (px, pz)을 glass_origin과 glass_size를 기반으로 grid 좌표로 매핑
     grid_cols, grid_rows = get_grid_size()
     glass_width, glass_height = glass_size
-    x_left, z_top = glass_origin  # glass_origin은 좌상단 기준 (x_left, z_top)
+    x_left, y_top = glass_origin  # glass_origin은 좌상단 기준 (x_left, y_top)
 
     grid_x = int(((px - x_left) / glass_width) * grid_cols)
-    grid_y = int(((z_top - pz) / glass_height) * grid_rows)
+    grid_y = int(((y_top - py) / glass_height) * grid_rows)
 
     grid_x = max(0, min(grid_x, grid_cols - 1))
     grid_y = max(0, min(grid_y, grid_rows - 1))
