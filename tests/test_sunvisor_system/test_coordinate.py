@@ -4,14 +4,14 @@ import unittest
 
 import matplotlib.pyplot as plt
 
-from sunvisor_system.mapping import coordinates
-from sunvisor_system.mapping.config import DEFAULT_IMAGE_SIZE
-
 # src 디렉토리를 Python 경로에 추가 (모듈 임포트를 위해)
 current_dir = os.path.dirname(os.path.abspath(__file__))
 root_dir = os.path.dirname(os.path.dirname(current_dir))
 src_dir = os.path.join(root_dir, "src")
 sys.path.insert(0, src_dir)
+
+from sunvisor_system.mapping import coordinates  # noqa: E402
+from sunvisor_system.mapping.config import DEFAULT_IMAGE_SIZE  # noqa: E402
 
 
 # 테스트를 위해 get_grid_size 함수를 덮어씁니다.
