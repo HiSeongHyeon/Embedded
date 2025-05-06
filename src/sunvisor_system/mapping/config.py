@@ -9,20 +9,20 @@ DEFAULT_IMAGE_SIZE: Tuple[int, int] = (640, 480)
 DEFAULT_FOV: Tuple[float, float] = (70, 60)
 
 # 차량 내 카메라 위치 (미터 단위): (x, y, z)
-# (0.5, 0.5, 1.0)으로 설정
-DEFAULT_CAMERA_POS: Tuple[float, float, float] = (0.5, 0.5, 1.0)
+# (0.5, 1.0, 0.5)으로 설정
+DEFAULT_CAMERA_POS: Tuple[float, float, float] = (0.5, 1.0, 0.5)
 
 # 운전자 눈 위치 (미터 단위): (x, y, z)
-# (0.25, 0.0, 1.2)로 설정
-DEFAULT_DRIVER_POS: Tuple[float, float, float] = (0.25, 0.0, 1.2)
+# (0.25, 1.2, 0.0)로 설정
+DEFAULT_DRIVER_POS: Tuple[float, float, float] = (0.25, 1.2, 0.0)
 
-# 운전자 좌표계에서 앞유리(윈드실드) 평면의 y 좌표 (미터 단위)
-DEFAULT_WINDSHIELD_Y: float = 1.0
+# 운전자 좌표계에서 앞유리(윈드실드) 평면의 z 좌표 (미터 단위)
+DEFAULT_WINDSHIELD_Z: float = 1.0
 
 # 윈드실드(유리창)의 물리적 크기 (미터 단위): (width, height)
 DEFAULT_GLASS_SIZE: Tuple[float, float] = (1.0, 0.5)
 
-# 윈드실드(유리창) 좌상단 물리 좌표 (미터 단위): (x_left, z_top)
+# 윈드실드(유리창) 좌상단 물리 좌표 (미터 단위): (x_left, y_top)
 # 이미지 처리 방식(좌상단 기준)에 맞게 설정 (예: 윈드실드 영역의 좌측 상단이 (0, 1.5)라고 가정)
 DEFAULT_GLASS_ORIGIN: Tuple[float, float] = (0.0, 1.5)
 
