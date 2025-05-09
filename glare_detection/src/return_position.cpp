@@ -1,13 +1,23 @@
 #include "return_position.h"
 #include <cmath>
 
-std::pair<int, int> solar_position::getSunCoordinates(const cv::Mat& frame) {
-    sd.findSun(frame);
-    return sd.getSunCoordinates();
+cv::Point2f glare_position::getGlareCoordinates(const cv::Mat& binaryMask) {
+    std::vector<cv::Point> nonzero_points;
+    cv::findNonZero(binaryMask, nonzero_points);
+    if (nonzero_points.empty()) return cv::Point2f(-1.0f, -1.0f);
+
+    cv::Point2f center(0.0f, 0.0f);
+    for (const auto& pt : nonzero_points) {
+        center.x += pt.x;
+        center.y += pt.y;
+    }
+    center.x /= nonzero_points.size();
+    center.y /= nonzero_points.size();
+    return center;
 }
 
-double solar_position::getSunArea() const {
-    return sd.getDetectedArea();
+double glare_position::getGlareArea() const {
+    return gd.getDetectedArea();
 }
 
 position_queue::position_queue(size_t max_size) : max_size_(max_size) {}
@@ -35,34 +45,20 @@ bool position_queue::shouldReturnAverage() const {
     return valid_count >= 15;
 }
 
-// // get avg at main loop
-// position_queue::Coord position_queue::getAveragePosition() const {
-//     int sum_x = 0, sum_y = 0, count = 0;
-//     for (const auto& [coord, valid] : queue_) {
-//         if (valid) {
-//             sum_x += coord.first;
-//             sum_y += coord.second;
-//             count++;
-//         }
-//     }
-//     if (count == 0) return {0, 0};
-//     return {sum_x / count, sum_y / count};
-// }
-
 //compute avg in queue for push
 position_queue::Coord position_queue::computeAverageOfValid() const {
     int sum_x = 0, sum_y = 0, count = 0;
     for (const auto& [coord, valid] : queue_) {
         if (valid) {
-            sum_x += coord.first;
-            sum_y += coord.second;
+            sum_x += coord.x;
+            sum_y += coord.y;
             count++;
         }
     }
     if (count == 0) return {0, 0};  // 최초 입력은 항상 무효가 아님
-    return {sum_x / count, sum_y / count};
+    return {sum_x / (float)count, sum_y / (float)count};
 }
 
 bool position_queue::isWithinRange(const Coord& a, const Coord& b, int threshold) const {
-    return std::abs(a.first - b.first) <= threshold && std::abs(a.second - b.second) <= threshold;
+    return std::abs(a.x - b.x) <= threshold && std::abs(a.y - b.y) <= threshold;
 }

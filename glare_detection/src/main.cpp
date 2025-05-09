@@ -11,9 +11,12 @@ using namespace cv;
 using namespace std::chrono;
 
 int main() {
-    solar_position sp;
-    sunDetector sd;
+    glare_position gp;
+    glare_detector gd;
     position_queue pq;
+
+    bool debug_mode = true;
+    const double brightness_threshold = 0.7; 
 
     const char* cmd =
         "libcamera-vid -t 0 -n --width 640 --height 480 --codec mjpeg -o - | "
@@ -60,47 +63,67 @@ int main() {
         if (frame.empty()) continue;
 
         if (first_frame) {
-            sp.sd.startVideo(frame);
+            gp.gd.startVideo(frame);
             first_frame = false;
         }
 
         auto start = high_resolution_clock::now();
 
-        auto brigthness = sd.isBrightArea(frame);
+        auto brigthness = gd.isBrightArea(frame);
 
-        std::pair<int, int> sunPos;
-        std::pair<int, int> avg_sunPos;
+        cv::Point2f glarePos;
+        cv::Point2f avg_glarePos;
+        
+        // check foward brightness state
+        if (brigthness > brightness_threshold) {
+            // Compute the photometric glare map from intensity, saturation, and contrast
+            cv::Mat gphoto = gd.computePhotometricMap(frame);
+            
+            // Compute the geometric glare map from circle detection on gphoto
+            cv::Mat ggeo = gd.computeGeometricMap(gphoto);
 
-        if (brigthness) {
-            sunPos = sp.getSunCoordinates(frame);
-            pq.push(sunPos);
+            // Combine all available maps into the final glare probability map
+            cv::Mat glare_map = gd.combineMaps(gphoto, ggeo);
+
+            // Threshold the glare map to obtain a binary glare mask
+            cv::Mat glare_mask;
+            cv::threshold(glare_map, glare_mask, 0.85, 1.0, cv::THRESH_BINARY);
+
+            glarePos = gp.getGlareCoordinates(glare_mask);
+            pq.push(glarePos);
 
             if (pq.shouldReturnAverage()){
-                avg_sunPos = pq.avgCoord;
+                avg_glarePos = pq.avgCoord;
             }
 
-            double area = sp.getSunArea();
-            sp.sd.drawSun(frame);
+            if (debug_mode) {
+                gd.drawGlareContours(glare_mask, frame);  // Draw enclosing circles
+                cv::imshow("Glare Map", glare_map);
+                cv::imshow("Glare Mask", glare_mask);
+            } 
+            else {
+                cv::circle(frame, avg_glarePos, 5, cv::Scalar(0, 0, 255), -1);  // Draw small dot
+            }
+            
         }  
         else{
-            avg_sunPos.first = -1;
-            avg_sunPos.second = -1;
-            double area = 0.0;
+            avg_glarePos.x = -1;
+            avg_glarePos.y = -1;
         }
 
         auto end = high_resolution_clock::now();
         auto duration = duration_cast<milliseconds>(end - start).count();    
         
-        cout << "Detected sun position: (" << avg_sunPos.first << ", " << avg_sunPos.second << ")\n";
+        cout << "Detected glare position: (" << avg_glarePos.x << ", " << avg_glarePos.y << ")\n";
         cout << "Processing time: " << duration << " ms\n";
 
-        imshow("Sun Detection", frame);
-
-        if (waitKey(10) == 27) break;
+        imshow("glare Detection", frame);
+        
+        if (waitKey(1) == 27) break;
     }
 
     pclose(pipe);
-    sp.sd.endVideo();
+    gp.gd.endVideo();
     destroyAllWindows();
 
     cout << ">>>>> Video Ended <<<<<\n";
