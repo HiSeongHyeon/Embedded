@@ -29,7 +29,7 @@ public:
     cv::Mat combineMaps(const cv::Mat& gphoto, const cv::Mat& ggeo);
     //void findGlare(const cv::Mat& frame);
     double getDetectedArea() const;
-    void drawGlareContours(const cv::Mat& binaryMask, cv::Mat& frame);
+    void drawGlareContours(const cv::Mat& inputImage, cv::Mat& frame);
 
     double isBrightArea(const cv::Mat& frame);
 };

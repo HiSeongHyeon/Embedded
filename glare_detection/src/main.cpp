@@ -16,11 +16,11 @@ int main() {
     position_queue pq;
 
     bool debug_mode = true;
-    const double brightness_threshold = 0.7; 
+    const double brightness_threshold = 0.3; 
 
     const char* cmd =
-        "libcamera-vid -t 0 -n --width 640 --height 480 --codec mjpeg -o - | "
-        "ffmpeg -f mjpeg -i - -f image2pipe -vcodec copy -";
+        "libcamera-vid -t 0 -n --width 640 --height 480 --codec mjpeg -o - 2>/dev/null | "
+        "ffmpeg -f mjpeg -i - -f image2pipe -vcodec mjpeg - 2>/dev/null";
 
     FILE* pipe = popen(cmd, "r");
     if (!pipe) {
@@ -87,7 +87,7 @@ int main() {
 
             // Threshold the glare map to obtain a binary glare mask
             cv::Mat glare_mask;
-            cv::threshold(glare_map, glare_mask, 0.85, 1.0, cv::THRESH_BINARY);
+            cv::threshold(glare_map, glare_mask, 0.5, 1.0, cv::THRESH_BINARY);
 
             glarePos = gp.getGlareCoordinates(glare_mask);
             pq.push(glarePos);
@@ -98,8 +98,8 @@ int main() {
 
             if (debug_mode) {
                 gd.drawGlareContours(glare_mask, frame);  // Draw enclosing circles
-                cv::imshow("Glare Map", glare_map);
-                cv::imshow("Glare Mask", glare_mask);
+                //cv::imshow("Glare Map", glare_map);
+                //cv::imshow("Glare Mask", glare_mask);
             } 
             else {
                 cv::circle(frame, avg_glarePos, 5, cv::Scalar(0, 0, 255), -1);  // Draw small dot

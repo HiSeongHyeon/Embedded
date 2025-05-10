@@ -67,7 +67,7 @@ cv::Mat glare_detector::computeGeometricMap(const cv::Mat& gphoto) {
     return ggeo;
 }
 
-// 최종 glare map 결합: Gphoto, Ggeo, Gsun (선택)
+// 최종 glare map 결합: Gphoto, Ggeo
 cv::Mat glare_detector::combineMaps(const cv::Mat& gphoto, const cv::Mat& ggeo) {
     return 0.5 * gphoto + 0.5 * ggeo;
 }
@@ -76,9 +76,32 @@ double glare_detector::getDetectedArea() const {
     return detectedArea;
 }
 
-void glare_detector::drawGlareContours(const cv::Mat& binaryMask, cv::Mat& frame) {
+void glare_detector::drawGlareContours(const cv::Mat& inputImage, cv::Mat& frame) {
+    cv::Mat gray;
+
+    if (inputImage.channels() == 3) {
+        // 컬러 → 그레이스케일
+        cv::cvtColor(inputImage, gray, cv::COLOR_BGR2GRAY);
+    } 
+    else if (inputImage.channels() == 1 && inputImage.depth() != CV_8U) {
+        // 단일 채널이지만 float 같은 경우
+        inputImage.convertTo(gray, CV_8U, 255.0);
+    } 
+    else if (inputImage.channels() == 1 && inputImage.depth() == CV_8U) {
+        // 이미 CV_8UC1이면 복사만
+        gray = inputImage.clone();
+    } 
+    else {
+        std::cerr << "❌ 지원되지 않는 이미지 형식입니다.\n";
+        return;
+    }
+
+// 이진화
+cv::Mat binary;
+cv::threshold(gray, binary, 200, 255, cv::THRESH_BINARY);
     std::vector<std::vector<cv::Point>> contours;
-    cv::findContours(binaryMask, contours, cv::RETR_EXTERNAL, cv::CHAIN_APPROX_SIMPLE);
+    cv::findContours(binary, contours, cv::RETR_EXTERNAL, cv::CHAIN_APPROX_SIMPLE);
+
     for (const auto& contour : contours) {
         if (contour.size() > 5) {
             cv::Point2f circ_center;
