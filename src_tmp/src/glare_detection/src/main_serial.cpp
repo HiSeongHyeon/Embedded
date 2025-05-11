@@ -112,33 +112,40 @@ int main() {
 
     if (glare_is_detected_flag) {
       if (grid_coords.first != -1 &&
-          grid_coords.second != -1) {   // 유효한 그리드 좌표인 경우
-        command_to_arduino |= (1 << 7); // 최상위 비트: Glare 감지됨 (1)
+          grid_coords.second != -1) {   // grid_coords는 (col, row)
+        command_to_arduino |= (1 << 7); // Glare 감지 플래그
 
-        std::pair<int, int> grid_dims = get_grid_size();
-        int num_cols = grid_dims.first;
-        // camera_to_driver_coords는 (col, row) 순서로 반환
-        int grid_index = grid_coords.second * num_cols + grid_coords.first;
+        // grid_coords.first = col (0, 1, 2) -> 2비트 필요
+        // grid_coords.second = row (0, 1, 2) -> 2비트 필요
 
-        if (grid_index >= 0 &&
-            grid_index < 9) { // 3x3 그리드의 유효 인덱스 (0~8)
-          command_to_arduino |= (static_cast<unsigned char>(grid_index) &
-                                 0x0F); // 최하위 4비트에 인덱스
-        } else {
-          cerr << "Warning: Calculated grid index " << grid_index
-               << " is out of range (0-11). Defaulting to retract command."
-               << endl;
-          command_to_arduino = 0; // 오류 시 안전하게 접기 명령
-        }
+        int col = grid_coords.first;
+        int row = grid_coords.second;
+
+        // C1 (col의 MSB)을 비트 3으로
+        // C0 (col의 LSB)을 비트 2로
+        // R1 (row의 MSB)을 비트 1로
+        // R0 (row의 LSB)을 비트 0으로
+
+        // col 값 (0, 1, 2) -> 이진수 00, 01, 10
+        unsigned char col_msb = (col >> 1) & 0x01; // col이 2 또는 3일 때 1
+        unsigned char col_lsb = col & 0x01;        // col이 1 또는 3일 때 1
+
+        // row 값 (0, 1, 2) -> 이진수 00, 01, 10
+        unsigned char row_msb = (row >> 1) & 0x01;
+        unsigned char row_lsb = row & 0x01;
+
+        command_to_arduino |= (col_msb << 3); // C1을 비트 3에
+        command_to_arduino |= (col_lsb << 2); // C0를 비트 2에
+        command_to_arduino |= (row_msb << 1); // R1을 비트 1에
+        command_to_arduino |= row_lsb;        // R0를 비트 0에
+
       } else {
         // Glare는 감지되었으나 좌표 변환 실패 또는 유효하지 않은 그리드
-        cerr << "Warning: Glare detected, but coordinate transformation failed "
-                "or grid is invalid. Sending retract command."
-             << endl;
-        command_to_arduino = 0; // 접기 명령
+        // command_to_arduino는 0 (접기) 유지 또는 특정 에러 코드
+        command_to_arduino = 0; // 예시: 접기
       }
     }
-    // Glare가 감지되지 않은 경우 command_to_arduino는 0 (접기) 유지
+    // Glare 미감지 시 command_to_arduino는 0 (접기)
 
     // Arduino로 명령 전송
     if (!SerialCom::sendByte(command_to_arduino)) {
