@@ -121,7 +121,7 @@ int main() {
         int grid_index = grid_coords.second * num_cols + grid_coords.first;
 
         if (grid_index >= 0 &&
-            grid_index < 12) { // 4x3 그리드의 유효 인덱스 (0~11)
+            grid_index < 9) { // 3x3 그리드의 유효 인덱스 (0~8)
           command_to_arduino |= (static_cast<unsigned char>(grid_index) &
                                  0x0F); // 최하위 4비트에 인덱스
         } else {

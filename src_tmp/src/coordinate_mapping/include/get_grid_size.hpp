@@ -4,7 +4,7 @@
 #include <utility>
 
 inline std::pair<int, int> get_grid_size() {
-  int grid_cols = 4;
+  int grid_cols = 3;
   int grid_rows = 3;
   return {grid_cols, grid_rows};
 }
