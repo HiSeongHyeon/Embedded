@@ -6,7 +6,7 @@
 #include <vector>
 
 int main() {
-  // 임의의 태양 중심점 (Python 코드의 예시 값 사용)
+  // 임의의 태양 중심점
   std::pair<double, double> sun_center = {320.0, 120.0};
 
   // 1. 좌표 변환 함수 호출

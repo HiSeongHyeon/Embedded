@@ -8,8 +8,7 @@
 inline double to_radians(double degrees) { return degrees * CV_PI / 180.0; }
 
 cv::Point3d ray_plane_intersection(const cv::Point3d &origin,
-                                   const cv::Vec3d &direction,
-                                   double plane_z) { // y에서 z로 변경
+                                   const cv::Vec3d &direction, double plane_z) {
   // Ray 방정식: P = origin + t * direction
   // 평면 방정식: P.z = plane_z
   // origin.z + t * direction[2] = plane_z
@@ -46,12 +45,8 @@ std::vector<int> to_bit_list(const std::pair<int, int> &grid_coord, int bits) {
 std::pair<int, int> camera_to_driver_coords(
     const std::pair<double, double> &sun_center,
     const std::pair<int, int> &image_size, const std::pair<double, double> &fov,
-    const cv::Point3d
-        &camera_pos, // 사용되지 않음 (Python 코드에서 camera_pos는 방향벡터
-                     // 계산에 직접 사용 안 함)
-    const cv::Point3d &driver_eye_pos,
-    double windshield_z, // y에서 z로 변경
-    const std::pair<double, double> &glass_size,
+    const cv::Point3d &camera_pos, const cv::Point3d &driver_eye_pos,
+    double windshield_z, const std::pair<double, double> &glass_size,
     const std::pair<double, double> &glass_origin) {
 
   cv::Mat sun_center_mat(1, 1, CV_64FC2);
@@ -81,10 +76,9 @@ std::pair<int, int> camera_to_driver_coords(
   double angle_y_rad = to_radians(norm_y * (fov_y_deg / 2.0));
 
   // (du,dv,dw)는 방향 벡터, 좌표계 축은 (x,y,z)와 동일
-  // Python 코드: du = math.tan(angle_x), dv = -math.tan(angle_y), dw = 1.0
   double du = std::tan(angle_x_rad);
-  double dv = -std::tan(angle_y_rad); // y 방향 반전 주의
-  double dw = 1.0; // 카메라 기본 전방은 +z(+w) 방향 (Python 코드와 동일)
+  double dv = -std::tan(angle_y_rad);
+  double dw = 1.0; // 카메라 기본 전방은 +z(+w) 방향
 
   cv::Vec3d D_vec(du, dv, dw);
   D_vec = cv::normalize(D_vec);
@@ -94,7 +88,7 @@ std::pair<int, int> camera_to_driver_coords(
       ray_plane_intersection(driver_eye_pos, D_vec, windshield_z);
   double px = intersection.x;
   double py = intersection.y; // 이전에는 _ 로 무시, 이제 py 사용
-  // double pz = intersection.z; // windshield_z 와 동일
+  double pz = intersection.z; // windshield_z 와 동일
 
   // 물리적 교차점 (px, py)을 glass_origin과 glass_size를 기반으로 grid 좌표로
   // 매핑
@@ -110,8 +104,6 @@ std::pair<int, int> camera_to_driver_coords(
 
   int grid_x =
       static_cast<int>(((px - x_left_glass) / glass_width) * grid_cols);
-  // Python 코드: grid_y = int(((y_top - py) / glass_height) * grid_rows)
-  // C++: y축 방향 일치 여부 확인 필요. 이미지 y는 아래로, 3D y는 위로 가정 시
   int grid_y =
       static_cast<int>(((y_top_glass - py) / glass_height) * grid_rows);
 

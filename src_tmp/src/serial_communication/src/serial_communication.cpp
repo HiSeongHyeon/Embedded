@@ -8,7 +8,6 @@
 namespace SerialCom {
 
 int serial_port_fd = -1; // 파일 범위 정적 변수로 선언하여 외부 직접 접근 방지
-                         // 권장 또는 클래스 정적 멤버로 변경
 
 bool initialize(const std::string &port_name, speed_t baud_rate) {
   serial_port_fd = open(port_name.c_str(), O_RDWR | O_NOCTTY | O_NDELAY);

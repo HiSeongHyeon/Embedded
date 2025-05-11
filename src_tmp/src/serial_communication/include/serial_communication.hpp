@@ -6,8 +6,7 @@
 
 namespace SerialCom {
 
-extern int serial_port_fd; // 전역 변수 대신 클래스 멤버나 네임스페이스 변수로
-                           // 관리하는 것이 더 좋지만, 간단한 예시
+extern int serial_port_fd;
 
 // 시리얼 포트 초기화 함수
 bool initialize(const std::string &port_name, speed_t baud_rate = B115200);

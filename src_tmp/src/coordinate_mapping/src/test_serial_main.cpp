@@ -102,7 +102,7 @@ void close_serial() {
 int main() {
   // --- 시리얼 포트 설정 ---
   const char *arduino_port =
-      "/dev/ttyUSB0"; // <<--- 실제 Arduino 포트로 수정!
+      "/dev/ttyUSB0"; // <<--- 실제 Arduino 포트로 수정
                       // 예: "/dev/ttyUSB0" 또는 Raspberry Pi의 경우
                       // "/dev/serial0" 등
   if (!init_serial(arduino_port, B115200)) { // Baud rate 115200으로 설정
@@ -113,11 +113,9 @@ int main() {
   std::cout << "[Serial] Port " << arduino_port
             << " opened successfully at 115200 bps." << std::endl;
 
-  // 임의의 태양 중심점 (Python 코드의 예시 값 사용)
+  // 임의의 태양 중심점
   std::pair<double, double> sun_center_test_case = {320.0,
-                                                    120.0}; // 테스트용 좌표 1
-  // std::pair<double, double> sun_center_test_case = {100.0, 400.0}; //
-  // 테스트용 좌표 2
+                                                    120.0}; // 테스트용 좌표
 
   std::cout << "[Test] Using sun_center: (" << sun_center_test_case.first
             << ", " << sun_center_test_case.second << ")" << std::endl;
