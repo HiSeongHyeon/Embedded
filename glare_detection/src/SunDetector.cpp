@@ -61,7 +61,7 @@ int sunDetector::isBrightArea(const cv::Mat& frame) {
     cv::Mat gray;
     cv::cvtColor(frame, gray, cv::COLOR_BGR2GRAY);
 
-    if (cv::mean(gray)[0]>50)
+    if (cv::mean(gray)[0]>30)
         return 1;
     else
         return 0;

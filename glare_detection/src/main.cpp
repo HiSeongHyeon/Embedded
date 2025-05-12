@@ -73,10 +73,15 @@ int main() {
 
         if (brigthness) {
             sunPos = sp.getSunCoordinates(frame);
+            cout << "coord: "<< sunPos.first << ", " << sunPos.second << "\n";
             pq.push(sunPos);
 
             if (pq.shouldReturnAverage()){
-                avg_sunPos = pq.avgCoord;
+                avg_sunPos = pq.getAvgCoord();
+            }
+            cout << "pushed a sun position.\n";
+            if (pq.shouldReturnAverage()) {
+                //cout << "Using average coord: (" << pq.avgCoord.first << ", " << pq.avgCoord.second << ")\n";
             }
 
             double area = sp.getSunArea();
