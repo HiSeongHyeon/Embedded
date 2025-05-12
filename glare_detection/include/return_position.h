@@ -14,7 +14,7 @@ class glare_position {
 
 class position_queue {
     public:
-        using Coord = std::pair<int, int>;
+        using Coord = cv::Point2f;
         using Entry = std::pair<Coord, bool>;
     
         position_queue(size_t max_size = 20);

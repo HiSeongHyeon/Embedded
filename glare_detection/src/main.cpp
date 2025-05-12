@@ -93,7 +93,7 @@ int main() {
             pq.push(glarePos);
 
             if (pq.shouldReturnAverage()){
-                avg_glarePos = pq.avgCoord;
+                avg_glarePos = pq.getAvgCoord();
             }
 
             if (debug_mode) {

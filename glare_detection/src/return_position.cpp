@@ -54,8 +54,8 @@ position_queue::Coord position_queue::computeAverageOfValid() const {
 
     for (const auto& [coord, valid] : queue_) {
         if (valid) {
-            sum_x += coord.first;
-            sum_y += coord.second;
+            sum_x += coord.x;
+            sum_y += coord.y;
             count++;
         }
     }
@@ -71,3 +71,4 @@ bool position_queue::isWithinRange(const Coord& a, const Coord& b, int threshold
 
 position_queue::Coord position_queue::getAvgCoord() const{
     return avgCoord;
+}
