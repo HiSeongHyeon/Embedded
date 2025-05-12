@@ -14,22 +14,26 @@ class glare_position {
 
 class position_queue {
     public:
-        using Coord = cv::Point2f;
+        using Coord = std::pair<int, int>;
         using Entry = std::pair<Coord, bool>;
-
-        Coord avgCoord;
+    
         position_queue(size_t max_size = 20);
     
         void push(const Coord& coord);
         bool shouldReturnAverage() const;
-        //Coord getAveragePosition() const;
+    
         
+        Coord getAvgCoord() const;
+    
     private:
         std::deque<Entry> queue_;
         size_t max_size_;
 
+        Coord avgCoord;
+
         Coord computeAverageOfValid() const;
-        bool isWithinRange(const Coord& a, const Coord& b, int threshold = 2) const;
+        bool isWithinRange(const Coord& a, const Coord& b, int threshold) const;
+        
     };
 
 #endif
