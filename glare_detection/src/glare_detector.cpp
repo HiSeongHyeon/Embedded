@@ -96,9 +96,9 @@ void glare_detector::drawGlareContours(const cv::Mat& inputImage, cv::Mat& frame
         return;
     }
 
-// 이진화
-cv::Mat binary;
-cv::threshold(gray, binary, 200, 255, cv::THRESH_BINARY);
+    // 이진화
+    cv::Mat binary;
+    cv::threshold(gray, binary, 200, 255, cv::THRESH_BINARY);
     std::vector<std::vector<cv::Point>> contours;
     cv::findContours(binary, contours, cv::RETR_EXTERNAL, cv::CHAIN_APPROX_SIMPLE);
 
