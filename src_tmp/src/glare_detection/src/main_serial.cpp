@@ -108,49 +108,8 @@ int main() {
     }
 
     // (추가) Arduino 명령 바이트 생성 및 전송
-    unsigned char command_to_arduino = 0; // 기본값: 접기 (Glare 없음)
-
-    if (glare_is_detected_flag) {
-      if (grid_coords.first != -1 &&
-          grid_coords.second != -1) {   // grid_coords는 (col, row)
-        command_to_arduino |= (1 << 7); // Glare 감지 플래그
-
-        // grid_coords.first = col (0, 1, 2) -> 2비트 필요
-        // grid_coords.second = row (0, 1, 2) -> 2비트 필요
-
-        int col = grid_coords.first;
-        int row = grid_coords.second;
-
-        // C1 (col의 MSB)을 비트 3으로
-        // C0 (col의 LSB)을 비트 2로
-        // R1 (row의 MSB)을 비트 1로
-        // R0 (row의 LSB)을 비트 0으로
-
-        // col 값 (0, 1, 2) -> 이진수 00, 01, 10
-        unsigned char col_msb = (col >> 1) & 0x01; // col이 2 또는 3일 때 1
-        unsigned char col_lsb = col & 0x01;        // col이 1 또는 3일 때 1
-
-        // row 값 (0, 1, 2) -> 이진수 00, 01, 10
-        unsigned char row_msb = (row >> 1) & 0x01;
-        unsigned char row_lsb = row & 0x01;
-
-        command_to_arduino |= (col_msb << 3); // C1을 비트 3에
-        command_to_arduino |= (col_lsb << 2); // C0를 비트 2에
-        command_to_arduino |= (row_msb << 1); // R1을 비트 1에
-        command_to_arduino |= row_lsb;        // R0를 비트 0에
-
-      } else {
-        // Glare는 감지되었으나 좌표 변환 실패 또는 유효하지 않은 그리드
-        // command_to_arduino는 0 (접기) 유지 또는 특정 에러 코드
-        command_to_arduino = 0; // 예시: 접기
-      }
-    }
-    // Glare 미감지 시 command_to_arduino는 0 (접기)
-
-    // Arduino로 명령 전송
-    if (!SerialCom::sendByte(command_to_arduino)) {
-      cerr << "Error: Failed to send command to Arduino." << endl;
-      // 여기에 시리얼 통신 재시도 로직 또는 에러 처리 추가 가능
+    if (!SerialCom::sendCommandToArduino(glare_is_detected_flag, grid_coords)) {
+            cerr << "[Main] Error: Failed to send command to Arduino via SerialCom module." << endl;
     }
     // 여기까지
 
