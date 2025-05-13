@@ -224,7 +224,7 @@ void loop() {
   byte receivedByte;
   bool newDataAvailable = false;
 
-  // 시리얼 버퍼 초기화 후 데이터 읽어오기
+  // 시리얼 버퍼 초기화 후 데이터 읽어오기로 변경
   while (Serial.available() > 0) {
     receivedByte = Serial.read();
     newDataAvailable = true;
