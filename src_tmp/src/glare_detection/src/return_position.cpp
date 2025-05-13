@@ -60,6 +60,7 @@ position_queue::Coord position_queue::computeAverageOfValid() const {
 }
 
 bool position_queue::isWithinRange(const Coord& a, const Coord& b, int threshold) const {
+    if(b.x ==0 && b.y==0) return 1;
     return std::abs(a.x - b.x) <= threshold && std::abs(a.y - b.y) <= threshold;
 }
 
