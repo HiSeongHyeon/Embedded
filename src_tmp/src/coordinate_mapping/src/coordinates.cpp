@@ -15,9 +15,6 @@ cv::Point3d ray_plane_intersection(const cv::Point3d &origin,
   // t = (plane_z - origin.z) / direction[2]
   if (std::abs(direction[2]) <
       1e-9) { // z 방향 성분이 거의 0이면 평면과 평행 (또는 포함)
-    // 적절한 에러 처리 또는 예외적 상황 반환
-    // 여기서는 일단 매우 큰 값을 갖는 포인트를 반환하거나, 에러를 명시할 수
-    // 있음
     return cv::Point3d(std::numeric_limits<double>::max(),
                        std::numeric_limits<double>::max(),
                        std::numeric_limits<double>::max());
@@ -27,19 +24,28 @@ cv::Point3d ray_plane_intersection(const cv::Point3d &origin,
   return origin + t * cv::Point3d(direction);
 }
 
-std::vector<int> to_bit_list(const std::pair<int, int> &grid_coord, int bits) {
-  std::pair<int, int> grid_dims = get_grid_size();
-  int num_cols = grid_dims.first;
-  // Python: value = grid_coord[0] * num_cols + grid_coord[1]
-  // grid_coord는 (col, row) 순서
-  int value = grid_coord.first * num_cols + grid_coord.second;
+std::vector<int> to_bit_list(const std::pair<int, int>& grid_coord, int bits) {
+    // grid_coord.first는 col (x 좌표), grid_coord.second는 row (y 좌표)
+    int col = grid_coord.first;
+    int row = grid_coord.second;
 
-  std::vector<int> bit_list;
-  bit_list.reserve(bits); // 메모리 미리 할당
-  for (int i = bits - 1; i >= 0; --i) {
-    bit_list.push_back((value >> i) & 1);
-  }
-  return bit_list;
+    if (col < 0 || col > 2 || row < 0 || row > 2) {
+         // Handle error: invalid input for 3x3 grid
+         return {0,0,0,0}; // Example error return
+    }
+
+    std::vector<int> bit_list;
+    bit_list.reserve(4); // 항상 4개의 비트
+
+    // 상위 2비트: Column (x 좌표) [Col_MSB, Col_LSB]
+    bit_list.push_back((col >> 1) & 1); // Col_MSB (col의 1번째 비트)
+    bit_list.push_back(col & 1);        // Col_LSB (col의 0번째 비트)
+
+    // 하위 2비트: Row (y 좌표) [Row_MSB, Row_LSB]
+    bit_list.push_back((row >> 1) & 1); // Row_MSB (row의 1번째 비트)
+    bit_list.push_back(row & 1);        // Row_LSB (row의 0번째 비트)
+
+    return bit_list;
 }
 
 std::pair<int, int> camera_to_driver_coords(
