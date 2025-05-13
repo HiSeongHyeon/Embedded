@@ -9,7 +9,7 @@ include_directories(${OpenCV_INCLUDE_DIRS} include)
 
 add_executable(solarTracker
     src/main.cpp
-    src/SunDetector.cpp
+    src/glare_detector.cpp
     src/return_position.cpp
 )
 

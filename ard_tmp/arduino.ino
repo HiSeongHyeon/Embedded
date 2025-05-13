@@ -156,6 +156,69 @@ void playServoAndMelody() {
 // 여기서는 버튼으로 제어되도록 했는데, 이제 이쪽 부분을 시리얼 통신으로 제어되도록 바꾸면 됨.
 // 일단 지금은 상중하 위아래로 3단계 움직이는 제어코드만 들어가있음.
 
+int get_grid_coords(int gridIndex) {
+  int gridIndexBits[4]; // 4개의 정수를 저장할 배열 (MSB부터 LSB 순서로 저장)
+      for (int i = 0; i < 4; i++) {
+        // gridIndexFromSerial의 (3-i)번째 비트를 추출하여 배열에 저장
+        // 예: i=0 -> 3번째 비트 (MSB)
+        //     i=1 -> 2번째 비트
+        //     i=2 -> 1번째 비트
+        //     i=3 -> 0번째 비트 (LSB)
+        gridIndexBits[i] = (gridIndex >> (3 - i)) & 0x01;
+      }
+
+      int grid_coords = 0;
+      int grid_x = 0;
+      int grid_y = 0;
+
+      if (gridIndexBits[0] == 0) {
+        if (gridIndexBits[1] == 0) {
+          grid_x = 1;
+        }
+        else if (gridIndexBits[1] == 1) {
+          grid_x = 2;
+        }
+      }
+      else if (gridIndexBits[0] == 1) {
+        if gridIndexBits[1] == 0 {
+          grid_x = 3;
+        }
+      }
+      else grid_x = 0;
+
+      if (gridIndexBits[2] == 0) {
+        if (gridIndexBits[3] == 0) {
+          grid_y = 1;
+        }
+        else if (gridIndexBits[3] == 1) {
+          grid_y = 2;
+        }
+      }
+      else if (gridIndexBits[2] == 1) {
+        if gridIndexBits[3] == 0 {
+          grid_y = 3;
+        }
+      }
+      else grid_y = 0;
+
+      if (grid_x=1 && grid_y=1) grid_coords=1;
+      else if (grid_x=1 && grid_y=2) grid_coords=2;
+      else if (grid_x=1 && grid_y=3) grid_coords=3;
+      else if (grid_x=2 && grid_y=1) grid_coords=4;
+      else if (grid_x=2 && grid_y=2) grid_coords=5;
+      else if (grid_x=2 && grid_y=3) grid_coords=6;
+      else if (grid_x=3 && grid_y=1) grid_coords=7;
+      else if (grid_x=3 && grid_y=2) grid_coords=8;
+      else if (grid_x=3 && grid_y=3) grid_coords=9;
+      else grid_coords=0;
+
+      return grid_coords;
+}
+// grid_coords (1~9)
+// 1 2 3
+// 4 5 6
+// 7 8 9
+
 void loop() {
   // (추가) 시리얼 통신 수신 및 기본 해석 로직
   byte receivedByte;
@@ -190,15 +253,7 @@ void loop() {
       Serial.print("  Serial Command: Glare DETECTED. Grid Index: ");
       Serial.println(gridIndexFromSerial);
 
-      int gridIndexBits[4]; // 4개의 정수를 저장할 배열 (MSB부터 LSB 순서로 저장)
-      for (int i = 0; i < 4; i++) {
-        // gridIndexFromSerial의 (3-i)번째 비트를 추출하여 배열에 저장
-        // 예: i=0 -> 3번째 비트 (MSB)
-        //     i=1 -> 2번째 비트
-        //     i=2 -> 1번째 비트
-        //     i=3 -> 0번째 비트 (LSB)
-        gridIndexBits[i] = (gridIndexFromSerial >> (3 - i)) & 0x01;
-      }
+      int grid_coords = get_grid_coords(gridIndexFromSerial);
 
     } else {
       // Glare가 감지되지 않은 경우 (최상위 비트가 0)
@@ -207,8 +262,7 @@ void loop() {
   }
   // 여기까지
   // glareDetectedBySerial이 0이면 접고, 1이면 펼치기
-  // gridIndexFromSerial은 비트값, gridIndexBits[]는 그 비트를 리스트로 변환한 것
-  // gridIndexBits[] = [Col_MSB, Col_LSB, Row_MSB, Row_LSB] [00,00] ~ [10,10]
+  // Use parameter grid_coords(integer from 1 to 9)
 
   // 버튼 1번이 눌리면 START 위치로 스텝모터 이동. (썬가드 위치는 제일 아래로 이동)
   if (digitalRead(BTN_30) == LOW) {

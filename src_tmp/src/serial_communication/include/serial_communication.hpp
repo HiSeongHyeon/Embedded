@@ -6,16 +6,18 @@
 
 namespace SerialCom {
 
-extern int serial_port_fd;
+    extern int serial_port_fd;
 
-// 시리얼 포트 초기화 함수
-bool initialize(const std::string &port_name, speed_t baud_rate = B115200);
+    // 시리얼 포트 초기화 함수
+    bool initialize(const std::string &port_name, speed_t baud_rate = B115200);
 
-// 1바이트 데이터 전송 함수
-bool sendByte(unsigned char data_byte);
+    // 1바이트 데이터 전송 함수
+    bool sendByte(unsigned char data_byte);
 
-// 시리얼 포트 닫기 함수
-void closePort();
+    // 시리얼 포트 닫기 함수
+    void closePort();
+
+    bool sendCommandToArduino(bool glare_detected, const std::pair<int, int>&grid_coords);
 
 } // namespace SerialCom
 

@@ -7,7 +7,7 @@
 
 int main() {
   // 임의의 태양 중심점
-  std::pair<double, double> sun_center = {320.0, 120.0};
+  std::pair<double, double> sun_center = {480.0, 360.0};
 
   // 1. 좌표 변환 함수 호출
   // camera_to_driver_coords 함수는 config.hpp의 기본 인자값을 사용
