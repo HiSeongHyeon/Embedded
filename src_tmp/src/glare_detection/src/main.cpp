@@ -116,7 +116,7 @@ int main() {
 
             pq.push(glarePos);
             if (pq.shouldReturnAverage()) {
-                avg_glarePos = pq.avgCoord;
+                avg_glarePos = pq.getAvgCoord();
             }
 
             // 시각화를 위한 threshold 기반 glare mask 생성
@@ -153,6 +153,7 @@ int main() {
             grid_coords = camera_to_driver_coords(sun_center_for_transform);
 
             std::vector<int> bit_list = to_bit_list(grid_coords);
+            bit_list_for_grid = bit_list;
         }
 
         // // [추후에 활성화] 아두이노 연결시
@@ -168,6 +169,20 @@ int main() {
         auto duration = duration_cast<milliseconds>(end - start).count();    
         
         cout << "Detected glare position: (" << avg_glarePos.x << ", " << avg_glarePos.y << ")\n";
+
+        if (glare_is_detected_flag && grid_coords.first != -1) {
+          cout << " | Grid Coords: (" << grid_coords.first << ", "
+               << grid_coords.second << ")\n";
+          cout << " | BitList: [";
+          for (size_t i = 0; i < bit_list_for_grid.size(); ++i) {
+            cout << bit_list_for_grid[i]
+                 << (i == bit_list_for_grid.size() - 1 ? "" : ", ");
+          }
+          cout << "]\n";
+        } else if (glare_is_detected_flag) {
+          cout << " | Grid Coords: Transform Failed\n";
+        }
+        
         cout << "Processing time: " << duration << " ms\n";
 
 

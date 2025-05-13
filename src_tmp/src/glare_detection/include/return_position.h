@@ -24,6 +24,7 @@ class position_queue {
     
         void push(const Coord& coord);
         bool shouldReturnAverage() const;
+        Coord getAvgCoord() const;
         //Coord getAveragePosition() const;
         
     private:

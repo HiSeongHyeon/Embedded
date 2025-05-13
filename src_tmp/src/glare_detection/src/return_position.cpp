@@ -87,3 +87,7 @@ cv::Point2f glare_position::getPriorityBasedGlareCenter(const cv::Mat& priority,
     }
     return cv::Point2f(-1, -1);  // No glare detected
 }
+
+position_queue::Coord position_queue::getAvgCoord() const {
+    return avgCoord;    
+}
