@@ -158,8 +158,16 @@ void playServoAndMelody() {
 
 void loop() {
   // (추가) 시리얼 통신 수신 및 기본 해석 로직
-  if (Serial.available() > 0) {
-    byte receivedByte = Serial.read(); // 시리얼 포트에서 1바이트 읽기
+  byte receivedByte;
+  bool newDataAvailable = false;
+
+  // 시리얼 버퍼 초기화 후 데이터 읽어오기
+  while (Serial.available() > 0) {
+    receivedByte = Serial.read();
+    newDataAvailable = true;
+  }
+
+  if (newDataAvailable) {
 
     // 수신된 바이트 값 확인 (디버깅용)
     Serial.print("Received Byte: 0b");
