@@ -30,23 +30,52 @@ cv::Mat glare_detector::computePhotometricMap(const cv::Mat& inputRGB) {
 }
 
 // Local Contrast 계산: RMS 기반, stride 4, blockSize 17 사용
-cv::Mat glare_detector::computeLocalContrast(const cv::Mat& intensity) {
-    int blockSize = 17;
-    int stride = 4;
-    cv::Mat contrast = cv::Mat::zeros(intensity.size(), CV_32F);
+// cv::Mat glare_detector::computeLocalContrast(const cv::Mat& intensity) {
+//     int blockSize = 17;
+//     int stride = 4;
+//     cv::Mat contrast = cv::Mat::zeros(intensity.size(), CV_32F);
 
-    for (int y = 0; y <= intensity.rows - blockSize; y += stride) {
-        for (int x = 0; x <= intensity.cols - blockSize; x += stride) {
-            cv::Rect roi(x, y, blockSize, blockSize);
-            cv::Mat block = intensity(roi);
-            cv::Scalar mean, stddev;
-            cv::meanStdDev(block, mean, stddev);
-            float val = stddev[0] / std::max(10.0, mean[0]);
-            contrast(roi).setTo(val);
-        }
-    }
-    return contrast;
+//     for (int y = 0; y <= intensity.rows - blockSize; y += stride) {
+//         for (int x = 0; x <= intensity.cols - blockSize; x += stride) {
+//             cv::Rect roi(x, y, blockSize, blockSize);
+//             cv::Mat block = intensity(roi);
+//             cv::Scalar mean, stddev;
+//             cv::meanStdDev(block, mean, stddev);
+//             float val = stddev[0] / std::max(10.0, mean[0]);
+//             contrast(roi).setTo(val);
+//         }
+//     }
+//     return contrast;
+// }
+cv::Mat glare_detector::computeLocalContrast(const cv::Mat& intensity) {
+    //CV_Assert(intensity.type() == CV_8UC1);
+
+    cv::Mat intensityFloat;
+    intensity.convertTo(intensityFloat, CV_32F);
+
+    int blockSize = 15;
+    float minMean = 10.0f;
+
+    // 로컬 평균
+    cv::Mat mean;
+    cv::boxFilter(intensityFloat, mean, CV_32F, cv::Size(blockSize, blockSize));
+
+    // 로컬 제곱 평균
+    cv::Mat sqr, meanSqr;
+    cv::multiply(intensityFloat, intensityFloat, sqr);
+    cv::boxFilter(sqr, meanSqr, CV_32F, cv::Size(blockSize, blockSize));
+
+    // 표준편차 계산
+    cv::Mat stddev;
+    cv::sqrt(meanSqr - mean.mul(mean), stddev);
+
+    // 대비 계산 (stddev / mean)
+    cv::Mat contrast;
+    cv::divide(stddev, mean + minMean, contrast); // mean이 너무 작을 경우 대비 폭주 방지
+
+    return contrast;  // CV_32F 타입, 필요시 normalize해서 시각화 가능
 }
+
 
 // Geometric map 생성: Gaussian Blur 후 Hough Circle로 glare 후보 검출
 cv::Mat glare_detector::computeGeometricMap(const cv::Mat& gphoto) {
@@ -92,14 +121,21 @@ cv::Mat glare_detector::computePriorityMap(const cv::Mat& gphoto, const cv::Mat&
         for (int x = 0; x < gphoto.cols; ++x) {
             float p = gphoto.at<float>(y, x);
             float c = ggeo.at<float>(y, x);
-
-            if (p >= 0.7f && c >= 0.5f) {
+            
+            // 밝고 원형인 glare 존재
+            if (p >= 0.9f && c >= 0.5f) {
                 priority.at<uchar>(y, x) = 1;
-            } else if (p >= 0.7f) {
+            } 
+            // 밝지만 원형은 아닌 glare 존재
+            else if (p >= 0.9f) {
                 priority.at<uchar>(y, x) = 2;
-            }
+            } 
+            // glare 존재 x 
+            else priority.at<uchar>(y, x) = 3; // priority 3 추가
         }
     }
+    
+    
     return priority;
 }
 
@@ -149,10 +185,3 @@ double glare_detector::isBrightArea(const cv::Mat& frame) {
 
     return cv::mean(gray)[0]/255;
 }
-
-
-
-
-
-
-

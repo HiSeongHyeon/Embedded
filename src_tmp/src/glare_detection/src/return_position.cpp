@@ -64,16 +64,87 @@ bool position_queue::isWithinRange(const Coord& a, const Coord& b, int threshold
     return std::abs(a.x - b.x) <= threshold && std::abs(a.y - b.y) <= threshold;
 }
 
-cv::Point2f glare_position::getMaxCombinedCenter(const cv::Mat& combined) {
-    double minVal, maxVal;
-    cv::Point maxLoc;
-    cv::minMaxLoc(combined, &minVal, &maxVal, nullptr, &maxLoc);
+// cv::Point2f glare_position::getMaxCombinedCenter(const cv::Mat& combined) {
+//     double minVal, maxVal;
+//     cv::Point maxLoc;
+//     cv::minMaxLoc(combined, &minVal, &maxVal, nullptr, &maxLoc);
 
-    // 최대값 주변 영역 추출
+//     // 최대값 주변 영역 추출
+//     cv::Mat bin;
+//     cv::threshold(combined, bin, maxVal - 1e-5, 1.0, cv::THRESH_BINARY);  // max 영역만
+//     return getGlareCoordinates(bin);
+// }
+
+// cv::Point2f glare_position::getMaxCombinedCenter(const cv::Mat& combined) {
+//     double minVal, maxVal;
+//     cv::Point maxLoc;
+//     cv::minMaxLoc(combined, &minVal, &maxVal, nullptr, &maxLoc);
+
+//     // max 값에 가까운 영역만 추출
+//     cv::Mat bin;
+//     cv::threshold(combined, bin, maxVal - 1e-5, 1.0, cv::THRESH_BINARY);
+//     bin.convertTo(bin, CV_8U);  // contour 분석을 위해 8비트로 변환
+
+//     // contour를 통해 연결된 영역 찾기
+//     std::vector<std::vector<cv::Point>> contours;
+//     cv::findContours(bin, contours, cv::RETR_EXTERNAL, cv::CHAIN_APPROX_SIMPLE);
+
+//     const double AREA_THRESHOLD = 10.0;  // 최소 면적 조건
+//     bool valid_region_found = false;
+
+//     for (const auto& contour : contours) {
+//         if (cv::contourArea(contour) >= AREA_THRESHOLD) {
+//             valid_region_found = true;
+//             break;
+//         }
+//     }
+
+//     if (!valid_region_found) {
+//         return cv::Point2f(-1, -1);  // 조건 만족하는 glare 없음
+//     }
+
+//     // 조건 만족 시만 glare 중심 계산
+//     return getGlareCoordinates(bin);
+// }
+
+cv::Point2f glare_position::getMaxCombinedCenter(const cv::Mat& combined) {
+    // Step 1: 유효한 값(> 0)을 가진 영역을 binary로 만듦
     cv::Mat bin;
-    cv::threshold(combined, bin, maxVal - 1e-5, 1.0, cv::THRESH_BINARY);  // max 영역만
-    return getGlareCoordinates(bin);
+    cv::threshold(combined, bin, 1e-5, 1.0, cv::THRESH_BINARY);
+    bin.convertTo(bin, CV_8U);  // findContours는 8-bit 이미지 필요
+
+    // Step 2: 연결된 blob들 추출
+    std::vector<std::vector<cv::Point>> contours;
+    cv::findContours(bin, contours, cv::RETR_EXTERNAL, cv::CHAIN_APPROX_SIMPLE);
+
+    if (contours.empty()) {
+        return cv::Point2f(-1, -1);  // 유효한 영역 없음
+    }
+
+    // Step 3: 가장 큰 contour 선택
+    double max_area = 0.0;
+    std::vector<cv::Point> maxContour;
+    for (const auto& contour : contours) {
+        double area = cv::contourArea(contour);
+        if (area > max_area) {
+            max_area = area;
+            maxContour = contour;
+        }
+    }
+
+    // Step 4: 선택된 contour를 기반으로 mask 생성
+    cv::Mat largestRegion = cv::Mat::zeros(combined.size(), CV_8U);
+
+    // if (!contours.empty()) {
+    //     cv::drawContours(largestRegion, std::vector<std::vector<cv::Point>>{maxContour}, -1, cv::Scalar(0,255,0), 2);
+    // }
+    cv::drawContours(largestRegion, std::vector<std::vector<cv::Point>>{maxContour}, -1, 255, cv::FILLED);
+
+    // Step 5: getGlareCoordinates()에 binary mask 전달
+    return getGlareCoordinates(largestRegion);
 }
+
+
 
 cv::Point2f glare_position::getPriorityBasedGlareCenter(const cv::Mat& priority, const cv::Mat& gphoto, const cv::Mat& ggeo, glare_detector& gd) {
     for (int level = 1; level <= 3; ++level) {
@@ -84,7 +155,7 @@ cv::Point2f glare_position::getPriorityBasedGlareCenter(const cv::Mat& priority,
         cv::Mat masked_combined;
         combined.copyTo(masked_combined, priority_mask);
 
-        return getMaxCombinedCenter(masked_combined);
+        return getMaxCombinedCenter(masked_combined); // 픽셀 하나 뱉는게 아니라 영역에 대해 판단해보게끔
     }
     return cv::Point2f(-1, -1);  // No glare detected
 }

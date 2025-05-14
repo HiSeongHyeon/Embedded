@@ -48,7 +48,9 @@ int main() {
 
     const char* cmd =
         "libcamera-vid -t 0 -n --width 640 --height 480 --codec mjpeg -o - 2>/dev/null | "
-        "ffmpeg -f mjpeg -i - -f image2pipe -vcodec copy -";
+        // "ffmpeg -f mjpeg -i - -f image2pipe -vcodec copy -";
+        "ffmpeg -f mjpeg -analyzeduration 10000000 -probesize 10000000 -i - -f image2pipe -vcodec copy -";
+
 
     FILE* pipe = popen(cmd, "r");
     if (!pipe) {
