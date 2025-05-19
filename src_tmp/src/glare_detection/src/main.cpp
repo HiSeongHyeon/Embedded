@@ -99,13 +99,13 @@ int main() {
 
         auto start = high_resolution_clock::now();
 
-        auto brigthness = gd.isBrightArea(frame);
+        auto brightness = gd.isBrightArea(frame);
 
         cv::Point2f glarePos;
         cv::Point2f avg_glarePos;
         
         // check foward brightness state
-        if (brigthness > brightness_threshold) {
+        if (brightness > brightness_threshold) {
             // Compute the photometric glare map from intensity, saturation, and contrast
             cv::Mat gphoto = gd.computePhotometricMap(frame);
             
@@ -115,6 +115,10 @@ int main() {
             cv::Mat priority = gd.computePriorityMap(gphoto, ggeo);
 
             cv::Point2f glarePos = gp.getPriorityBasedGlareCenter(priority, gphoto, ggeo, gd);
+
+            auto detect_end = high_resolution_clock::now();
+            auto detect_duration = duration_cast<milliseconds>(detect_end - start).count();
+            cout << "Detect Processing time: " << detect_duration << " ms\n"; 
 
             pq.push(glarePos);
             if (pq.shouldReturnAverage()) {
@@ -141,10 +145,6 @@ int main() {
             avg_glarePos.x = -1;
             avg_glarePos.y = -1;
         }
-
-        auto detect_end = high_resolution_clock::now();
-        auto detect_duration = duration_cast<milliseconds>(detect_end - start).count();
-        cout << "Detect Processing time: " << detect_duration << " ms\n"; 
 
         // 종현이 형 코드 추가
         bool glare_is_detected_flag = (avg_glarePos.x != -1 && avg_glarePos.y != -1);
