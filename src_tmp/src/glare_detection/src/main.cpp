@@ -28,7 +28,7 @@ using namespace std::chrono;
 
 // [추후에 활성화] 아두이노 연결시
 // 프로그램 종료 시 시리얼 포트 자동 닫기를 위한 핸들러
-void cleanup_serial_main_handler() { SerialCom::closePort(); }
+//void cleanup_serial_main_handler() { SerialCom::closePort(); }
 // 
 
 int main() {
@@ -38,17 +38,17 @@ int main() {
 
     // [추후에 활성화] 아두이노 연결시
     // (추가) 시리얼 포트 초기화
-    const char *arduino_port = "/dev/ttyACM0"; // <<--- 실제 Arduino 포트로 수정
-    if (!SerialCom::initialize(arduino_port, B115200)) { // Baud rate 115200
-        cerr << "Error: Failed to initialize serial port " << arduino_port << endl;
-    return -1; // 시리얼 포트 열기 실패 시 종료
-    }
-    atexit(cleanup_serial_main_handler); // 프로그램 종료 시 포트 자동 닫기 등록
-    cout << "[Serial] Port " << arduino_port << " opened successfully." << endl;
+    // const char *arduino_port = "/dev/ttyACM0"; // <<--- 실제 Arduino 포트로 수정
+    // if (!SerialCom::initialize(arduino_port, B115200)) { // Baud rate 115200
+    //     cerr << "Error: Failed to initialize serial port " << arduino_port << endl;
+    // return -1; // 시리얼 포트 열기 실패 시 종료
+    // }
+    // atexit(cleanup_serial_main_handler); // 프로그램 종료 시 포트 자동 닫기 등록
+    // cout << "[Serial] Port " << arduino_port << " opened successfully." << endl;
     // 여기까지
 
     bool debug_mode = true;
-    const double brightness_threshold = 0.3; 
+    const double brightness_threshold = -1; 
 
     const char* cmd =
         "libcamera-vid -t 0 -n --width 640 --height 480 --codec mjpeg -o - 2>/dev/null | "
@@ -134,7 +134,7 @@ int main() {
             // 시각화를 위한 threshold 기반 glare mask 생성
             cv::Mat glare_map = gd.combineMaps(gphoto, ggeo);
             cv::Mat glare_mask;
-            cv::threshold(glare_map, glare_mask, 0.5, 1.0, cv::THRESH_BINARY);
+            cv::threshold(glare_map, glare_mask, 0.8, 1.0, cv::THRESH_BINARY);
 
             // gd.drawGlareContours(glare_mask, frame);  // Draw enclosing contours from mask
 
@@ -169,9 +169,9 @@ int main() {
 
         // [추후에 활성화] 아두이노 연결시
         // (추가) Arduino 명령 바이트 생성 및 전송
-        if (!SerialCom::sendCommandToArduino(glare_is_detected_flag, grid_coords)) {
-                cerr << "[Main] Error: Failed to send command to Arduino via SerialCom module." << endl;
-        }
+        // if (!SerialCom::sendCommandToArduino(glare_is_detected_flag, grid_coords)) {
+        //         cerr << "[Main] Error: Failed to send command to Arduino via SerialCom module." << endl;
+        // }
         //       
 
         

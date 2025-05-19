@@ -55,7 +55,7 @@ cv::Mat glare_detector::computeLocalContrast(const cv::Mat& intensity) {
     cv::Mat intensityFloat;
     intensity.convertTo(intensityFloat, CV_32F);
 
-    int blockSize = 15;
+    int blockSize = 17;
     float minMean = 10.0f;
 
     // 로컬 평균
@@ -82,7 +82,7 @@ cv::Mat glare_detector::computeLocalContrast(const cv::Mat& intensity) {
 // Geometric map 생성: Gaussian Blur 후 Hough Circle로 glare 후보 검출
 cv::Mat glare_detector::computeGeometricMap(const cv::Mat& gphoto) {
     cv::Mat blurred, blurred8u;
-    cv::GaussianBlur(gphoto, blurred, cv::Size(15, 15), 5);
+    cv::GaussianBlur(gphoto, blurred, cv::Size(13, 13), 5);
     blurred.convertTo(blurred8u, CV_8U, 255);
 
     std::vector<cv::Vec3f> circles;
@@ -107,7 +107,7 @@ cv::Mat glare_detector::computeGeometricMap(const cv::Mat& gphoto) {
 
 // 최종 glare map 결합: Gphoto, Ggeo
 cv::Mat glare_detector::combineMaps(const cv::Mat& gphoto, const cv::Mat& ggeo) {
-    return 1.0 * gphoto + 0.5 * ggeo;
+    return 0.7 * gphoto + 0.2 * ggeo;
 }
 
 cv::Mat glare_detector::combineMapsbyprod(const cv::Mat& gphoto, const cv::Mat& ggeo) {
@@ -125,11 +125,11 @@ cv::Mat glare_detector::computePriorityMap(const cv::Mat& gphoto, const cv::Mat&
             float c = ggeo.at<float>(y, x);
             
             // 밝고 원형인 glare 존재
-            if (p >= 0.7f && c >= 0.5f) {
+            if (p >= 0.9f && c >= 0.5f) {
                 priority.at<uchar>(y, x) = 1;
             } 
             // 밝지만 원형은 아닌 glare 존재
-            else if (p >= 0.7f) {
+            else if (p >= 0.9f) {
                 priority.at<uchar>(y, x) = 2;
             } 
             // glare 존재 x 
