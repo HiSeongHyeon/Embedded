@@ -92,7 +92,7 @@ int main() {
         Mat frame = imdecode(jpegData, IMREAD_COLOR);
         if (frame.empty()) continue;
 
-        cv::flip(frame, frame, 1);
+        // cv::flip(frame, frame, 1);
 
         if (first_frame) {
             gp.gd.startVideo(frame);
