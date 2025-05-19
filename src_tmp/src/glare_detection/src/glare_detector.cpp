@@ -1,5 +1,7 @@
 #include "glare_detector.h"
 
+int debug_color = 0;
+
 glare_detector::glare_detector() : glareCenter(-1, -1), detectedArea(0.0), glareFound(false) {}
 
 void glare_detector::startVideo(const cv::Mat& frame) {
@@ -91,7 +93,7 @@ cv::Mat glare_detector::computeGeometricMap(const cv::Mat& gphoto) {
     // 100,                 // Canny upper threshold
     // 30,                  // 중심 검출 임계값
     // 10, 200);            // 반지름 최소/최대
-    cv::HoughCircles(blurred8u, circles, cv::HOUGH_GRADIENT, 1, 20, 100, 30, 10, 200);
+    cv::HoughCircles(blurred8u, circles, cv::HOUGH_GRADIENT, 1, 20, 75, 30, 10, 200);
 
     cv::Mat ggeo = cv::Mat::zeros(gphoto.size(), CV_32F);
     for (const auto& circle : circles) {
@@ -123,11 +125,11 @@ cv::Mat glare_detector::computePriorityMap(const cv::Mat& gphoto, const cv::Mat&
             float c = ggeo.at<float>(y, x);
             
             // 밝고 원형인 glare 존재
-            if (p >= 0.8f && c >= 0.5f) {
+            if (p >= 0.7f && c >= 0.5f) {
                 priority.at<uchar>(y, x) = 1;
             } 
             // 밝지만 원형은 아닌 glare 존재
-            else if (p >= 0.8f) {
+            else if (p >= 0.7f) {
                 priority.at<uchar>(y, x) = 2;
             } 
             // glare 존재 x 

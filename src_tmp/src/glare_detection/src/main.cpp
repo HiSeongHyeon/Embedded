@@ -1,3 +1,7 @@
+//#define VIDEO
+
+#ifndef VIDEO
+
 #include <return_position.h>
 #include <opencv2/opencv.hpp>
 #include <iostream>
@@ -130,15 +134,15 @@ int main() {
             // 시각화를 위한 threshold 기반 glare mask 생성
             cv::Mat glare_map = gd.combineMaps(gphoto, ggeo);
             cv::Mat glare_mask;
-            cv::threshold(glare_map, glare_mask, 0.7, 1.0, cv::THRESH_BINARY);
+            cv::threshold(glare_map, glare_mask, 0.5, 1.0, cv::THRESH_BINARY);
 
             // gd.drawGlareContours(glare_mask, frame);  // Draw enclosing contours from mask
 
             if (debug_mode && glarePos.x >= 0) {
                 // ✅ glarePos를 기반으로 imshow에 원 표시
-                cv::circle(frame, glarePos, 10, cv::Scalar(0, 255, 0), 2);
+                cv::circle(frame, glarePos, 10, cv::Scalar(0, 255, debug_color), 2);
             } else {
-                cv::circle(frame, avg_glarePos, 5, cv::Scalar(0, 0, 255), -1);
+                cv::circle(frame, avg_glarePos, 5, cv::Scalar(0, 0, debug_color), -1);
             }
 
             
@@ -206,3 +210,184 @@ int main() {
     cout << ">>>>> Video Ended <<<<<\n";
     return 0;
 }
+
+#else 
+
+#include <return_position.h>
+#include <opencv2/opencv.hpp>
+#include <iostream>
+#include <cstdio>
+#include <vector>
+#include <string>
+#include <chrono>
+
+// 추가가
+#include <utility> // std::pair
+#include <string>
+
+// --- 좌표 변환 및 시리얼 통신 모듈 헤더 ---
+#include "config.hpp"
+#include "coordinates.hpp" // camera_to_driver_coords, to_bit_list
+#include "get_grid_size.hpp"
+#include "serial_communication.hpp"
+
+#include <cstdlib>
+
+using namespace std;
+using namespace cv;
+using namespace std::chrono;
+
+// [추후에 활성화] 아두이노 연결시
+// 프로그램 종료 시 시리얼 포트 자동 닫기를 위한 핸들러
+void cleanup_serial_main_handler() { SerialCom::closePort(); }
+// 
+
+int main() {
+    glare_position gp;
+    glare_detector gd;
+    position_queue pq;
+
+    // [추후에 활성화] 아두이노 연결시
+    // (추가) 시리얼 포트 초기화
+    const char *arduino_port = "/dev/ttyACM0"; // <<--- 실제 Arduino 포트로 수정
+    if (!SerialCom::initialize(arduino_port, B115200)) { // Baud rate 115200
+        cerr << "Error: Failed to initialize serial port " << arduino_port << endl;
+    return -1; // 시리얼 포트 열기 실패 시 종료
+    }
+    atexit(cleanup_serial_main_handler); // 프로그램 종료 시 포트 자동 닫기 등록
+    cout << "[Serial] Port " << arduino_port << " opened successfully." << endl;
+    // 여기까지
+
+    bool debug_mode = true;
+    const double brightness_threshold = 0.3; 
+
+    // Replace this with your video file path
+    string videoPath = "../resources/ex4.jpg";
+
+    // Open video file
+    VideoCapture cap(videoPath);
+
+    if (!cap.isOpened()) {
+        cerr << "Failed to open video file: " << videoPath << endl;
+        return -1;
+    }
+
+    bool first_frame = true;
+    Mat frame;
+
+    while (true) {
+        cap >> frame;
+        if (frame.empty()) break;
+
+        if (first_frame) {
+            gp.gd.startVideo(frame);
+            first_frame = false;
+        }
+
+        auto start = high_resolution_clock::now();
+
+        auto brightness = gd.isBrightArea(frame);
+
+        cv::Point2f glarePos;
+        cv::Point2f avg_glarePos;
+        
+        // check foward brightness state
+        if (brightness > brightness_threshold) {
+            // Compute the photometric glare map from intensity, saturation, and contrast
+            cv::Mat gphoto = gd.computePhotometricMap(frame);
+            
+            // Compute the geometric glare map from circle detection on gphoto
+            cv::Mat ggeo = gd.computeGeometricMap(gphoto);
+
+            cv::Mat priority = gd.computePriorityMap(gphoto, ggeo);
+
+            cv::Point2f glarePos = gp.getPriorityBasedGlareCenter(priority, gphoto, ggeo, gd);
+
+            auto detect_end = high_resolution_clock::now();
+            auto detect_duration = duration_cast<milliseconds>(detect_end - start).count();
+            cout << "Detect Processing time: " << detect_duration << " ms\n"; 
+
+            pq.push(glarePos);
+            if (pq.shouldReturnAverage()) {
+                avg_glarePos = pq.getAvgCoord();
+            }
+
+            // 시각화를 위한 threshold 기반 glare mask 생성
+            cv::Mat glare_map = gd.combineMaps(gphoto, ggeo);
+            cv::Mat glare_mask;
+            cv::threshold(glare_map, glare_mask, 0.5, 1.0, cv::THRESH_BINARY);
+
+            // gd.drawGlareContours(glare_mask, frame);  // Draw enclosing contours from mask
+
+            if (debug_mode && glarePos.x >= 0) {
+                // ✅ glarePos를 기반으로 imshow에 원 표시
+                cv::circle(frame, glarePos, 10, cv::Scalar(0, 255, debug_color), 2);
+            } else {
+                cv::circle(frame, avg_glarePos, 5, cv::Scalar(0, 0, debug_color), -1);
+            }
+
+            
+        }  
+        else{
+            avg_glarePos.x = -1;
+            avg_glarePos.y = -1;
+        }
+
+        // 종현이 형 코드 추가
+        bool glare_is_detected_flag = (avg_glarePos.x != -1 && avg_glarePos.y != -1);
+        std::pair<int, int> grid_coords = {-1, -1};
+        std::vector<int> bit_list_for_grid;
+
+        if (glare_is_detected_flag) {
+            std::pair<double, double> sun_center_for_transform = {
+                static_cast<double>(avg_glarePos.x),
+                static_cast<double>(avg_glarePos.y)};
+            grid_coords = camera_to_driver_coords(sun_center_for_transform);
+
+            std::vector<int> bit_list = to_bit_list(grid_coords);
+            bit_list_for_grid = bit_list;
+        }
+
+        // [추후에 활성화] 아두이노 연결시
+        // (추가) Arduino 명령 바이트 생성 및 전송
+        if (!SerialCom::sendCommandToArduino(glare_is_detected_flag, grid_coords)) {
+                cerr << "[Main] Error: Failed to send command to Arduino via SerialCom module." << endl;
+        }
+        //       
+
+        auto end = high_resolution_clock::now();
+        auto duration = duration_cast<milliseconds>(end - start).count();    
+        
+        cout << "Detected glare position: (" << avg_glarePos.x << ", " << avg_glarePos.y << ")\n";
+
+        if (glare_is_detected_flag && grid_coords.first != -1) {
+          cout << " | Grid Coords: (" << grid_coords.first << ", "
+               << grid_coords.second << ")\n";
+          cout << " | BitList: [";
+          for (size_t i = 0; i < bit_list_for_grid.size(); ++i) {
+            cout << bit_list_for_grid[i]
+                 << (i == bit_list_for_grid.size() - 1 ? "" : ", ");
+          }
+          cout << "]\n";
+        } else if (glare_is_detected_flag) {
+          cout << " | Grid Coords: Transform Failed\n";
+        }
+        
+        cout << "Total Processing time: " << duration << " ms\n";
+
+
+
+        imshow("glare Detection", frame);
+        
+        if (waitKey(1) == 27) break;
+    }
+    
+    cap.release();
+    gp.gd.endVideo();
+    destroyAllWindows();
+
+    cout << ">>>>> Video Ended <<<<<\n";
+    return 0;
+}
+
+#endif

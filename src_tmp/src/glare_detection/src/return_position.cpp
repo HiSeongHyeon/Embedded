@@ -55,7 +55,7 @@ position_queue::Coord position_queue::computeAverageOfValid() const {
             count++;
         }
     }
-    if (count == 0) return {0, 0};  // 최초 입력은 항상 무효가 아님
+    if (count == 0) return {-1, -1};  // 최초 입력은 항상 무효가 아님
     return {sum_x / (float)count, sum_y / (float)count};
 }
 
@@ -148,6 +148,7 @@ cv::Point2f glare_position::getMaxCombinedCenter(const cv::Mat& combined) {
 
 cv::Point2f glare_position::getPriorityBasedGlareCenter(const cv::Mat& priority, const cv::Mat& gphoto, const cv::Mat& ggeo, glare_detector& gd) {
     for (int level = 1; level <= 3; ++level) {
+        debug_color = (level - 1)*255;
         cv::Mat priority_mask = (priority == level);
         if (cv::countNonZero(priority_mask) == 0) continue;
 

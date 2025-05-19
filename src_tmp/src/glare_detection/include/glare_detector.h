@@ -1,6 +1,8 @@
 #ifndef GLARE_DETECTOR_H
 #define GLARE_DETECTOR_H
 
+extern int debug_color;
+
 #include <opencv2/opencv.hpp>
 
 class glare_detector {
