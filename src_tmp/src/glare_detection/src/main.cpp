@@ -142,6 +142,9 @@ int main() {
             avg_glarePos.y = -1;
         }
 
+        auto detect_end = high_resolution_clock::now();
+        auto detect_duration = duration_cast<milliseconds>(detect_end - start).count();
+        cout << "Processing time: " << detect_duration << " ms\n"; 
 
         // 종현이 형 코드 추가
         bool glare_is_detected_flag = (avg_glarePos.x != -1 && avg_glarePos.y != -1);
