@@ -1,4 +1,4 @@
-//#define VIDEO
+#define VIDEO
 
 #ifndef VIDEO
 
@@ -131,10 +131,10 @@ int main() {
                 avg_glarePos = pq.getAvgCoord();
             }
 
-            // 시각화를 위한 threshold 기반 glare mask 생성
-            cv::Mat glare_map = gd.combineMaps(gphoto, ggeo);
-            cv::Mat glare_mask;
-            cv::threshold(glare_map, glare_mask, 0.8, 1.0, cv::THRESH_BINARY);
+            // // 시각화를 위한 threshold 기반 glare mask 생성
+            // cv::Mat glare_map = gd.combineMaps(gphoto, ggeo);
+            // cv::Mat glare_mask;
+            // cv::threshold(glare_map, glare_mask, 0.8, 1.0, cv::THRESH_BINARY);
 
             // gd.drawGlareContours(glare_mask, frame);  // Draw enclosing contours from mask
 
@@ -239,7 +239,7 @@ using namespace std::chrono;
 
 // [추후에 활성화] 아두이노 연결시
 // 프로그램 종료 시 시리얼 포트 자동 닫기를 위한 핸들러
-void cleanup_serial_main_handler() { SerialCom::closePort(); }
+// void cleanup_serial_main_handler() { SerialCom::closePort(); }
 // 
 
 int main() {
@@ -249,20 +249,20 @@ int main() {
 
     // [추후에 활성화] 아두이노 연결시
     // (추가) 시리얼 포트 초기화
-    const char *arduino_port = "/dev/ttyACM0"; // <<--- 실제 Arduino 포트로 수정
-    if (!SerialCom::initialize(arduino_port, B115200)) { // Baud rate 115200
-        cerr << "Error: Failed to initialize serial port " << arduino_port << endl;
-    return -1; // 시리얼 포트 열기 실패 시 종료
-    }
-    atexit(cleanup_serial_main_handler); // 프로그램 종료 시 포트 자동 닫기 등록
-    cout << "[Serial] Port " << arduino_port << " opened successfully." << endl;
+    // const char *arduino_port = "/dev/ttyACM0"; // <<--- 실제 Arduino 포트로 수정
+    // if (!SerialCom::initialize(arduino_port, B115200)) { // Baud rate 115200
+    //     cerr << "Error: Failed to initialize serial port " << arduino_port << endl;
+    // return -1; // 시리얼 포트 열기 실패 시 종료
+    // }
+    // atexit(cleanup_serial_main_handler); // 프로그램 종료 시 포트 자동 닫기 등록
+    // cout << "[Serial] Port " << arduino_port << " opened successfully." << endl;
     // 여기까지
 
     bool debug_mode = true;
     const double brightness_threshold = 0.3; 
 
     // Replace this with your video file path
-    string videoPath = "../resources/ex4.jpg";
+    string videoPath = "/home/tiger2/Embedded/src_tmp/src/glare_detection/resources/sun_clouds_1.mp4";
 
     // Open video file
     VideoCapture cap(videoPath);
@@ -349,10 +349,10 @@ int main() {
         }
 
         // [추후에 활성화] 아두이노 연결시
-        // (추가) Arduino 명령 바이트 생성 및 전송
-        if (!SerialCom::sendCommandToArduino(glare_is_detected_flag, grid_coords)) {
-                cerr << "[Main] Error: Failed to send command to Arduino via SerialCom module." << endl;
-        }
+        // // (추가) Arduino 명령 바이트 생성 및 전송
+        // if (!SerialCom::sendCommandToArduino(glare_is_detected_flag, grid_coords)) {
+        //         cerr << "[Main] Error: Failed to send command to Arduino via SerialCom module." << endl;
+        // }
         //       
 
         auto end = high_resolution_clock::now();

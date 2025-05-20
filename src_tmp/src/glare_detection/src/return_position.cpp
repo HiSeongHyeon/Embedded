@@ -4,7 +4,7 @@
 cv::Point2f glare_position::getGlareCoordinates(const cv::Mat& binaryMask) {
     std::vector<cv::Point> nonzero_points;
     cv::findNonZero(binaryMask, nonzero_points);
-    if (nonzero_points.empty()) return cv::Point2f(-1.0f, -1.0f);
+    if (nonzero_points.empty()) return cv::Point2f(-7.0f, -7.0f);
 
     cv::Point2f center(0.0f, 0.0f);
     for (const auto& pt : nonzero_points) {
@@ -121,6 +121,7 @@ cv::Point2f glare_position::getMaxCombinedCenter(const cv::Mat& combined) {
     std::vector<std::vector<cv::Point>> contours;
     cv::findContours(bin, contours, cv::RETR_EXTERNAL, cv::CHAIN_APPROX_SIMPLE);
 
+
     if (contours.empty()) {
         return cv::Point2f(-3, -3);  // 유효한 영역 없음
     }
@@ -136,14 +137,11 @@ cv::Point2f glare_position::getMaxCombinedCenter(const cv::Mat& combined) {
         }
     }
 
+
     // Step 4: 선택된 contour를 기반으로 mask 생성
     cv::Mat largestRegion = cv::Mat::zeros(combined.size(), CV_8U);
 
-    // if (!contours.empty()) {
-    //     cv::drawContours(largestRegion, std::vector<std::vector<cv::Point>>{maxContour}, -1, cv::Scalar(0,255,0), 2);
-    // }
-    
-    cv::drawContours(largestRegion, std::vector<std::vector<cv::Point>>{maxContour}, -1, 255, cv::FILLED);
+    cv::drawContours(largestRegion, std::vector<std::vector<cv::Point>>{maxContour}, -1, cv::Scalar(0,255,0), cv::FILLED);
 
     // Step 5: getGlareCoordinates()에 binary mask 전달
     return getGlareCoordinates(largestRegion);

@@ -125,11 +125,11 @@ cv::Mat glare_detector::computePriorityMap(const cv::Mat& gphoto, const cv::Mat&
             float c = ggeo.at<float>(y, x);
             
             // 밝고 원형인 glare 존재
-            if (p >= 0.9f && c >= 0.5f) {
+            if (p >= 0.1f && c >= 0.1f) {
                 priority.at<uchar>(y, x) = 1;
             } 
             // 밝지만 원형은 아닌 glare 존재
-            else if (p >= 0.9f) {
+            else if (p >= 0.1f) {
                 priority.at<uchar>(y, x) = 2;
             } 
             // glare 존재 x 
