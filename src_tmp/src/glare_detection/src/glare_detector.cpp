@@ -107,11 +107,11 @@ cv::Mat glare_detector::computeGeometricMap(const cv::Mat& gphoto) {
 
 // 최종 glare map 결합: Gphoto, Ggeo
 cv::Mat glare_detector::combineMaps(const cv::Mat& gphoto, const cv::Mat& ggeo) {
-    return 0.7 * gphoto + 0.2 * ggeo;
+    return 1.0 * gphoto + 1.0 * ggeo;
 }
 
 cv::Mat glare_detector::combineMapsbyprod(const cv::Mat& gphoto, const cv::Mat& ggeo) {
-    cv::Mat weighted_geo = 0.8 + 0.2 * ggeo;
+    cv::Mat weighted_geo = 0.7 + 0.3 * ggeo;
     cv::Mat combined = gphoto.mul(weighted_geo);  // element-wise product
     return combined;
 }
@@ -125,15 +125,15 @@ cv::Mat glare_detector::computePriorityMap(const cv::Mat& gphoto, const cv::Mat&
             float c = ggeo.at<float>(y, x);
             
             // 밝고 원형인 glare 존재
-            if (p >= 0.1f && c >= 0.1f) {
+            if (p >= 0.8f && c >= 0.4f) {
                 priority.at<uchar>(y, x) = 1;
             } 
             // 밝지만 원형은 아닌 glare 존재
-            else if (p >= 0.1f) {
+            else if (p >= 0.9f && c<=0.2f) {
                 priority.at<uchar>(y, x) = 2;
             } 
-            // glare 존재 x 
-            else priority.at<uchar>(y, x) = 3; // priority 3 추가
+            // // glare 존재 x 
+            // else priority.at<uchar>(y, x) = 3; // priority 3 추가
         }
     }
     

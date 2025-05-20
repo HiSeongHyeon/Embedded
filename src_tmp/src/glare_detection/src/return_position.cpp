@@ -23,7 +23,7 @@ double glare_position::getGlareArea() const {
 position_queue::position_queue(size_t max_size) : max_size_(max_size) {}
 
 void position_queue::push(const Coord& coord) {
-    bool valid = false;
+    bool valid = true;
     int valid_count = 0;
 
     avgCoord = computeAverageOfValid();
@@ -114,7 +114,7 @@ cv::Point2f glare_position::getMaxCombinedCenter(const cv::Mat& combined) {
     }
     // Step 1: 유효한 값(> 0)을 가진 영역을 binary로 만듦
     cv::Mat bin;
-    cv::threshold(combined, bin, 1e-5, 1.0, cv::THRESH_BINARY);
+    cv::threshold(combined, bin, 1e-3, 1.0, cv::THRESH_BINARY);
     bin.convertTo(bin, CV_8U);  // findContours는 8-bit 이미지 필요
 
     // Step 2: 연결된 blob들 추출
@@ -141,7 +141,7 @@ cv::Point2f glare_position::getMaxCombinedCenter(const cv::Mat& combined) {
     // Step 4: 선택된 contour를 기반으로 mask 생성
     cv::Mat largestRegion = cv::Mat::zeros(combined.size(), CV_8U);
 
-    cv::drawContours(largestRegion, std::vector<std::vector<cv::Point>>{maxContour}, -1, cv::Scalar(0,255,0), cv::FILLED);
+    cv::drawContours(largestRegion, std::vector<std::vector<cv::Point>>{maxContour}, -1, cv::Scalar(255), cv::FILLED);
 
     // Step 5: getGlareCoordinates()에 binary mask 전달
     return getGlareCoordinates(largestRegion);
@@ -150,16 +150,17 @@ cv::Point2f glare_position::getMaxCombinedCenter(const cv::Mat& combined) {
 
 
 cv::Point2f glare_position::getPriorityBasedGlareCenter(const cv::Mat& priority, const cv::Mat& gphoto, const cv::Mat& ggeo, glare_detector& gd) {
-    for (int level = 1; level <= 3; ++level) {
+    for (int level = 1; level < 3; ++level) {
         debug_color = (level - 1)*255;
         cv::Mat priority_mask = (priority == level);
         if (cv::countNonZero(priority_mask) == 0) continue;
 
-        cv::Mat combined = gd.combineMapsbyprod(gphoto, ggeo);
-        cv::Mat masked_combined;
-        combined.copyTo(masked_combined, priority_mask);
+        // cv::Mat combined = gd.combineMaps(gphoto, ggeo);
+        // cv::normalize(combined, combined, 0, 1.0, cv::NORM_MINMAX);
+        // cv::Mat masked_combined;
+        // combined.copyTo(masked_combined, priority_mask);
 
-        return getMaxCombinedCenter(masked_combined); // 픽셀 하나 뱉는게 아니라 영역에 대해 판단해보게끔
+        return getMaxCombinedCenter(priority_mask); // 픽셀 하나 뱉는게 아니라 영역에 대해 판단해보게끔
     }
     return cv::Point2f(-2, -2);  // No glare detected
 }
