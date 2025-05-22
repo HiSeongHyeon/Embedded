@@ -144,18 +144,16 @@ cv::Point2f glare_position::getMaxCombinedCenter(const cv::Mat& combined) {
     return getGlareCoordinates(largestRegion);
 }
 
-
-
 cv::Point2f glare_position::getPriorityBasedGlareCenter(const cv::Mat& priority, const cv::Mat& gphoto, const cv::Mat& ggeo, glare_detector& gd) {
     for (int level = 1; level <= 3; ++level) {
         cv::Mat priority_mask = (priority == level);
         if (cv::countNonZero(priority_mask) == 0) continue;
 
-        cv::Mat combined = gd.combineMapsbyprod(gphoto, ggeo);
-        cv::Mat masked_combined;
-        combined.copyTo(masked_combined, priority_mask);
+        // cv::Mat combined = gd.combineMapsbyprod(gphoto, ggeo);
+        // cv::Mat masked_combined;
+        // combined.copyTo(masked_combined, priority_mask);
 
-        return getMaxCombinedCenter(masked_combined); // 픽셀 하나 뱉는게 아니라 영역에 대해 판단해보게끔
+        return getMaxCombinedCenter(priority_mask); // 픽셀 하나 뱉는게 아니라 영역에 대해 판단해보게끔
     }
     return cv::Point2f(-1, -1);  // No glare detected
 }
