@@ -42,7 +42,7 @@ bool position_queue::shouldReturnAverage() const {
     for (const auto& entry : queue_) {
         if (entry.second) valid_count++;
     }
-    return valid_count >= 15;
+    return valid_count >= 35;
 }
 
 //compute avg in queue for push

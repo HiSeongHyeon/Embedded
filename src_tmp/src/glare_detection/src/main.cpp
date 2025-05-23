@@ -30,7 +30,7 @@ using namespace std::chrono;
 
 // [추후에 활성화] 아두이노 연결시
 // 프로그램 종료 시 시리얼 포트 자동 닫기를 위한 핸들러
-//void cleanup_serial_main_handler() { SerialCom::closePort(); }
+void cleanup_serial_main_handler() { SerialCom::closePort(); }
 // 
 
 int main() {
@@ -43,14 +43,14 @@ int main() {
 
     // [추후에 활성화] 아두이노 연결시
     // (추가) 시리얼 포트 초기화
-    // const char *arduino_port = "/dev/ttyACM0"; // <<--- 실제 Arduino 포트로 수정
-    // if (!SerialCom::initialize(arduino_port, B115200)) { // Baud rate 115200
-    //     cerr << "Error: Failed to initialize serial port " << arduino_port << endl;
-    // return -1; // 시리얼 포트 열기 실패 시 종료
-    // }
-    // atexit(cleanup_serial_main_handler); // 프로그램 종료 시 포트 자동 닫기 등록
-    // cout << "[Serial] Port " << arduino_port << " opened successfully." << endl;
-    // 여기까지
+    const char *arduino_port = "/dev/ttyACM0"; // <<--- 실제 Arduino 포트로 수정
+    if (!SerialCom::initialize(arduino_port, B115200)) { // Baud rate 115200
+        cerr << "Error: Failed to initialize serial port " << arduino_port << endl;
+    return -1; // 시리얼 포트 열기 실패 시 종료
+    }
+    atexit(cleanup_serial_main_handler); // 프로그램 종료 시 포트 자동 닫기 등록
+    cout << "[Serial] Port " << arduino_port << " opened successfully." << endl;
+    //여기까지
 
     bool debug_mode = false;
     const double brightness_threshold = -1; 
@@ -64,7 +64,7 @@ int main() {
     // 노출 수동 조절 코드
     const char* cmd =
         "libcamera-vid -t 0 -n --width 640 --height 480 "
-        "--shutter 1000 --gain 1.0 --awbgains 1.2,1.2 "
+        "--shutter 100000 --gain 1.0 --awbgains 1.2,1.2 "
         "--codec mjpeg -o - 2>/dev/null | "
         "ffmpeg -f mjpeg -analyzeduration 10000000 -probesize 10000000 -i - -f image2pipe -vcodec copy -";
     
@@ -108,8 +108,6 @@ int main() {
         Mat jpegData(buffer);
         Mat frame = imdecode(jpegData, IMREAD_COLOR);
         if (frame.empty()) continue;
-
-        // cv::flip(frame, frame, 1);
 
         if (first_frame) {
             gp.gd.startVideo(frame);
@@ -188,12 +186,10 @@ int main() {
 
         // [추후에 활성화] 아두이노 연결시
         // (추가) Arduino 명령 바이트 생성 및 전송
-        // if (!SerialCom::sendCommandToArduino(glare_is_detected_flag, grid_coords)) {
-        //         cerr << "[Main] Error: Failed to send command to Arduino via SerialCom module." << endl;
-        // }
-        //       
-
-        
+        if (!SerialCom::sendCommandToArduino(glare_is_detected_flag, grid_coords)) {
+                cerr << "[Main] Error: Failed to send command to Arduino via SerialCom module." << endl;
+        }
+              
 
         auto end = high_resolution_clock::now();
         auto duration = duration_cast<milliseconds>(end - start).count();    
@@ -218,7 +214,11 @@ int main() {
 
         imshow("glare Detection", frame);
         
-        if (waitKey(1) == 27) break;
+        if (waitKey(1) == 27) {
+            glare_is_detected_flag = 0;
+            SerialCom::sendCommandToArduino(glare_is_detected_flag, grid_coords);
+            break;
+        }
     }
 
     pclose(pipe);

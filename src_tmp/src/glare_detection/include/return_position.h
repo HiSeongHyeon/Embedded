@@ -20,7 +20,7 @@ class position_queue {
         using Entry = std::pair<Coord, bool>;
 
         Coord avgCoord;
-        position_queue(size_t max_size = 20);
+        position_queue(size_t max_size = 50);
     
         void push(const Coord& coord);
         bool shouldReturnAverage() const;
