@@ -32,7 +32,7 @@ class position_queue {
         size_t max_size_;
 
         Coord computeAverageOfValid() const;
-        bool isWithinRange(const Coord& a, const Coord& b, int threshold = 100) const;
+        bool isWithinRange(const Coord& a, const Coord& b, int threshold = 200) const;
     };
 
 #endif

@@ -55,14 +55,16 @@ position_queue::Coord position_queue::computeAverageOfValid() const {
             count++;
         }
     }
-    if (count == 0) return {-4, -4};  // 최초 입력은 항상 무효가 아님
+    if (count == 0) return {-1, -1};  // 최초 입력은 항상 무효가 아님
     return {sum_x / (float)count, sum_y / (float)count};
 }
 
-bool position_queue::isWithinRange(const Coord& a, const Coord& b, int threshold) const {
-    if(b.x ==0 && b.y==0) return 1;
-    if(b.x < 0 && b.y < 0) return -1;
-    return std::abs(a.x - b.x) <= threshold && std::abs(a.y - b.y) <= threshold;
+bool position_queue::isWithinRange(const Coord& pos, const Coord& avg_pos, int threshold) const {
+    if(pos.x < 0 || pos.y < 0) return false;
+    // if(avg_pos.x <0 || avg_pos.y < 0) return false;
+    // if(avg_pos.x ==0 && avg_pos.y==0) return true;
+    
+    return std::abs(pos.x - avg_pos.x) <= threshold && std::abs(pos.y - avg_pos.y) <= threshold;
 }
 
 // cv::Point2f glare_position::getMaxCombinedCenter(const cv::Mat& combined) {
@@ -140,9 +142,13 @@ cv::Point2f glare_position::getMaxCombinedCenter(const cv::Mat& combined) {
 
     // Step 4: 선택된 contour를 기반으로 mask 생성
     cv::Mat largestRegion = cv::Mat::zeros(combined.size(), CV_8U);
-
-    cv::drawContours(largestRegion, std::vector<std::vector<cv::Point>>{maxContour}, -1, cv::Scalar(255), cv::FILLED);
-
+    if(maxContour.empty()){
+        return cv::Point2f(-1, -1);
+    }
+    else{
+        cv::drawContours(largestRegion, std::vector<std::vector<cv::Point>>{maxContour}, -1, cv::Scalar(255), cv::FILLED);
+    }
+    
     // Step 5: getGlareCoordinates()에 binary mask 전달
     return getGlareCoordinates(largestRegion);
 }
