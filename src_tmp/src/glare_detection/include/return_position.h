@@ -23,7 +23,7 @@ class position_queue {
         position_queue(size_t max_size = 50);
     
         void push(const Coord& coord);
-        bool shouldReturnAverage() const;
+        int shouldReturnAverage() const;
         Coord getAvgCoord() const;
         //Coord getAveragePosition() const;
         

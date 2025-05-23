@@ -37,12 +37,21 @@ void position_queue::push(const Coord& coord) {
 }
 
 // check duration
-bool position_queue::shouldReturnAverage() const {
+int position_queue::shouldReturnAverage() const {
     int valid_count = 0;
     for (const auto& entry : queue_) {
         if (entry.second) valid_count++;
     }
-    return valid_count >= 35;
+    
+    if (valid_count >= 35){
+        return 1;
+    }
+    else if (valid_count >=10 && valid_count <35){
+        return 0;
+    }
+    else{
+        return -1;
+    }
 }
 
 //compute avg in queue for push
