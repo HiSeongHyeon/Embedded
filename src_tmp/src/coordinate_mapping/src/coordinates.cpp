@@ -24,28 +24,28 @@ cv::Point3d ray_plane_intersection(const cv::Point3d &origin,
   return origin + t * cv::Point3d(direction);
 }
 
-std::vector<int> to_bit_list(const std::pair<int, int>& grid_coord, int bits) {
-    // grid_coord.first는 col (x 좌표), grid_coord.second는 row (y 좌표)
-    int col = grid_coord.first;
-    int row = grid_coord.second;
+std::vector<int> to_bit_list(const std::pair<int, int> &grid_coord, int bits) {
+  // grid_coord.first는 col (x 좌표), grid_coord.second는 row (y 좌표)
+  int col = grid_coord.first;
+  int row = grid_coord.second;
 
-    if (col < 0 || col > 2 || row < 0 || row > 2) {
-         // Handle error: invalid input for 3x3 grid
-         return {0,0,0,0}; // Example error return
-    }
+  if (col < 0 || col > 2 || row < 0 || row > 2) {
+    // Handle error: invalid input for 3x3 grid
+    return {0, 0, 0, 0}; // Example error return
+  }
 
-    std::vector<int> bit_list;
-    bit_list.reserve(4); // 항상 4개의 비트
+  std::vector<int> bit_list;
+  bit_list.reserve(4); // 항상 4개의 비트
 
-    // 상위 2비트: Column (x 좌표) [Col_MSB, Col_LSB]
-    bit_list.push_back((col >> 1) & 1); // Col_MSB (col의 1번째 비트)
-    bit_list.push_back(col & 1);        // Col_LSB (col의 0번째 비트)
+  // 상위 2비트: Column (x 좌표) [Col_MSB, Col_LSB]
+  bit_list.push_back((col >> 1) & 1); // Col_MSB (col의 1번째 비트)
+  bit_list.push_back(col & 1);        // Col_LSB (col의 0번째 비트)
 
-    // 하위 2비트: Row (y 좌표) [Row_MSB, Row_LSB]
-    bit_list.push_back((row >> 1) & 1); // Row_MSB (row의 1번째 비트)
-    bit_list.push_back(row & 1);        // Row_LSB (row의 0번째 비트)
+  // 하위 2비트: Row (y 좌표) [Row_MSB, Row_LSB]
+  bit_list.push_back((row >> 1) & 1); // Row_MSB (row의 1번째 비트)
+  bit_list.push_back(row & 1);        // Row_LSB (row의 0번째 비트)
 
-    return bit_list;
+  return bit_list;
 }
 
 std::pair<int, int> camera_to_driver_coords(
@@ -117,4 +117,65 @@ std::pair<int, int> camera_to_driver_coords(
   grid_y = std::max(0, std::min(grid_y, grid_rows - 1));
 
   return {grid_x, grid_y};
+}
+
+void visualize_grid_on_frame(
+    cv::Mat &display_frame,
+    const std::pair<int, int> &target_grid_coords, // (target_col, target_row)
+    const std::pair<int, int> &total_grid_dims,    // (total_cols, total_rows)
+    int image_width, int image_height) {
+  int total_cols = total_grid_dims.first;
+  int total_rows = total_grid_dims.second;
+
+  if (total_cols <= 0 || total_rows <= 0)
+    return; // 유효하지 않은 그리드 크기
+
+  // 각 그리드 셀의 화면상 너비와 높이 계산
+  float cell_pixel_width = static_cast<float>(image_width) / total_cols;
+  float cell_pixel_height = static_cast<float>(image_height) / total_rows;
+
+  // 1. 전체 그리드 경계선 그리기
+  for (int i = 1; i < total_cols; ++i) { // 세로선
+    float x = i * cell_pixel_width;
+    cv::line(display_frame, cv::Point(x, 0), cv::Point(x, image_height - 1),
+             cv::Scalar(128, 128, 128), 1); // 회색
+  }
+  for (int i = 1; i < total_rows; ++i) { // 가로선
+    float y = i * cell_pixel_height;
+    cv::line(display_frame, cv::Point(0, y), cv::Point(image_width - 1, y),
+             cv::Scalar(128, 128, 128), 1); // 회색
+  }
+
+  // 2. 현재 타겟 그리드 셀 강조
+  int target_col = target_grid_coords.first;
+  int target_row = target_grid_coords.second;
+
+  if (target_col >= 0 && target_col < total_cols && target_row >= 0 &&
+      target_row < total_rows) {
+    float rect_x = target_col * cell_pixel_width;
+    float rect_y = target_row * cell_pixel_height;
+
+    cv::Rect roi(static_cast<int>(rect_x), static_cast<int>(rect_y),
+                 static_cast<int>(cell_pixel_width),
+                 static_cast<int>(cell_pixel_height));
+
+    // 반투명한 사각형으로 강조
+    cv::Mat overlay;
+    display_frame.copyTo(overlay);
+    cv::rectangle(overlay, roi, cv::Scalar(0, 255, 0, 100),
+                  -1); // 초록색, 약간 투명하게 (alpha는 PNG 저장 시 의미)
+    double alpha = 0.3; // 투명도
+    cv::addWeighted(overlay, alpha, display_frame, 1 - alpha, 0, display_frame);
+
+    // 또는 간단히 테두리만
+    // cv::rectangle(display_frame, roi, cv::Scalar(0, 255, 0), 2); // 초록색
+    // 테두리
+
+    // 그리드 셀 중앙에 텍스트 표시
+    // std::string text = std::to_string(target_col) + "," +
+    // std::to_string(target_row); cv::Point text_origin(static_cast<int>(rect_x
+    // + cell_pixel_width / 3), static_cast<int>(rect_y + cell_pixel_height /
+    // 2)); cv::putText(display_frame, text, text_origin,
+    // cv::FONT_HERSHEY_SIMPLEX, 0.5, cv::Scalar(255, 0, 0), 1);
+  }
 }

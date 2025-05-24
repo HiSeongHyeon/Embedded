@@ -26,4 +26,10 @@ std::pair<int, int> camera_to_driver_coords(
     const std::pair<double, double> &glass_size = DEFAULT_GLASS_SIZE,
     const std::pair<double, double> &glass_origin = DEFAULT_GLASS_ORIGIN);
 
+void visualize_grid_on_frame(cv::Mat &display_frame,
+                             const std::pair<int, int> &target_grid_coords,
+                             const std::pair<int, int> &total_grid_dims,
+                             int image_width = DEFAULT_IMAGE_SIZE.first,
+                             int image_height = DEFAULT_IMAGE_SIZE.second);
+
 #endif // COORDINATES_HPP
