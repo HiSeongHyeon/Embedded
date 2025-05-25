@@ -119,63 +119,68 @@ std::pair<int, int> camera_to_driver_coords(
   return {grid_x, grid_y};
 }
 
-void visualize_grid_on_frame(
-    cv::Mat &display_frame,
-    const std::pair<int, int> &target_grid_coords, // (target_col, target_row)
-    const std::pair<int, int> &total_grid_dims,    // (total_cols, total_rows)
-    int image_width, int image_height) {
+void visualize_grid_on_frame(const cv::Mat &display_frame_in,
+                             cv::Mat &display_frame_out,
+                             const std::pair<int, int> &total_grid_dims,
+                             int step_size) {
+  if (display_frame_in.empty() || step_size <= 0) {
+    if (!display_frame_in.empty())
+      display_frame_in.copyTo(display_frame_out);
+    return;
+  }
+
+  display_frame_in.copyTo(
+      display_frame_out); // 원본에 그리지 않도록 복사본 사용 또는 직접 그림
+
+  int img_width = display_frame_in.cols;
+  int img_height = display_frame_in.rows;
   int total_cols = total_grid_dims.first;
   int total_rows = total_grid_dims.second;
 
-  if (total_cols <= 0 || total_rows <= 0)
-    return; // 유효하지 않은 그리드 크기
-
-  // 각 그리드 셀의 화면상 너비와 높이 계산
-  float cell_pixel_width = static_cast<float>(image_width) / total_cols;
-  float cell_pixel_height = static_cast<float>(image_height) / total_rows;
-
-  // 1. 전체 그리드 경계선 그리기
-  for (int i = 1; i < total_cols; ++i) { // 세로선
-    float x = i * cell_pixel_width;
-    cv::line(display_frame, cv::Point(x, 0), cv::Point(x, image_height - 1),
-             cv::Scalar(128, 128, 128), 1); // 회색
+  // 각 그리드 인덱스에 대한 색상을 미리 정의
+  std::vector<cv::Scalar> grid_colors;
+  for (int r = 0; r < total_rows; ++r) {
+    for (int c = 0; c < total_cols; ++c) {
+      // 간단한 색상 생성 로직
+      grid_colors.push_back(
+          cv::Scalar((c * 255 / total_cols), (r * 255 / total_rows), 200));
+    }
   }
-  for (int i = 1; i < total_rows; ++i) { // 가로선
-    float y = i * cell_pixel_height;
-    cv::line(display_frame, cv::Point(0, y), cv::Point(image_width - 1, y),
-             cv::Scalar(128, 128, 128), 1); // 회색
-  }
+  if (grid_colors.empty())
+    return; // 그리드가 없으면 종료
 
-  // 2. 현재 타겟 그리드 셀 강조
-  int target_col = target_grid_coords.first;
-  int target_row = target_grid_coords.second;
+  // 이미지의 각 영역(step_size 간격)을 순회
+  for (int y_pixel = 0; y_pixel < img_height; y_pixel += step_size) {
+    for (int x_pixel = 0; x_pixel < img_width; x_pixel += step_size) {
+      // 현재 픽셀 블록의 중심 좌표
+      double current_pixel_u = static_cast<double>(x_pixel + step_size / 2);
+      double current_pixel_v = static_cast<double>(y_pixel + step_size / 2);
 
-  if (target_col >= 0 && target_col < total_cols && target_row >= 0 &&
-      target_row < total_rows) {
-    float rect_x = target_col * cell_pixel_width;
-    float rect_y = target_row * cell_pixel_height;
+      if (current_pixel_u >= img_width || current_pixel_v >= img_height)
+        continue;
 
-    cv::Rect roi(static_cast<int>(rect_x), static_cast<int>(rect_y),
-                 static_cast<int>(cell_pixel_width),
-                 static_cast<int>(cell_pixel_height));
+      // 이 픽셀 좌표가 어떤 그리드 셀로 매핑되는지 계산
+      std::pair<double, double> sun_center_for_transform = {current_pixel_u,
+                                                            current_pixel_v};
+      std::pair<int, int> mapped_grid =
+          camera_to_driver_coords(sun_center_for_transform);
 
-    // 반투명한 사각형으로 강조
-    cv::Mat overlay;
-    display_frame.copyTo(overlay);
-    cv::rectangle(overlay, roi, cv::Scalar(0, 255, 0, 100),
-                  -1); // 초록색, 약간 투명하게 (alpha는 PNG 저장 시 의미)
-    double alpha = 0.3; // 투명도
-    cv::addWeighted(overlay, alpha, display_frame, 1 - alpha, 0, display_frame);
+      if (mapped_grid.first != -1 &&
+          mapped_grid.second != -1) { // 유효한 그리드 좌표로 매핑된 경우
+        // 1차원 그리드 인덱스로 변환
+        int grid_1d_idx = mapped_grid.second * total_cols + mapped_grid.first;
 
-    // 또는 간단히 테두리만
-    // cv::rectangle(display_frame, roi, cv::Scalar(0, 255, 0), 2); // 초록색
-    // 테두리
+        if (grid_1d_idx >= 0 && grid_1d_idx < grid_colors.size()) {
+          // 해당 픽셀 블록을 매핑된 그리드의 색상으로 칠하기
+          cv::Rect roi(x_pixel, y_pixel, step_size, step_size);
 
-    // 그리드 셀 중앙에 텍스트 표시
-    // std::string text = std::to_string(target_col) + "," +
-    // std::to_string(target_row); cv::Point text_origin(static_cast<int>(rect_x
-    // + cell_pixel_width / 3), static_cast<int>(rect_y + cell_pixel_height /
-    // 2)); cv::putText(display_frame, text, text_origin,
-    // cv::FONT_HERSHEY_SIMPLEX, 0.5, cv::Scalar(255, 0, 0), 1);
+          // 반투명하게 칠하기
+          cv::Mat roi_mat = display_frame_out(roi);
+          cv::Mat color_roi(roi.size(), CV_8UC3, grid_colors[grid_1d_idx]);
+          double alpha = 0.4;
+          cv::addWeighted(color_roi, alpha, roi_mat, 1.0 - alpha, 0.0, roi_mat);
+        }
+      }
+    }
   }
 }

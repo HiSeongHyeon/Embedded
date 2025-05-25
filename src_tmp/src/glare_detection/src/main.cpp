@@ -211,15 +211,15 @@ int main() {
     // ▼▼▼▼▼ 좌표 변환 시각화 함수 호출 ▼▼▼▼▼
     std::pair<int, int> grid_dims_to_visualize =
         get_grid_size(); // 전체 그리드 크기 가져오기
-    // glare_is_detected_flag가 true이고 grid_coords가 유효할 때만 해당 그리드를
-    // 타겟으로, 아니면 강조 안 함
-    std::pair<int, int> target_grid_for_vis =
-        (glare_is_detected_flag && grid_coords.first != -1)
-            ? grid_coords
-            : std::make_pair(-1, -1);
 
-    visualize_grid_on_frame(frame, target_grid_for_vis, grid_dims_to_visualize,
+    cv::Mat frame_with_grid; // 결과를 받을 Mat
+
+    visualize_grid_on_frame(frame, frame_with_grid, grid_dims_to_visualize,
                             frame.cols, frame.rows);
+
+    imshow("visualize grid index", frame_with_grid);
+
+    // ▲▲▲▲▲ 좌표 변환 시각화 함수 호출 ▲▲▲▲▲
 
     imshow("glare Detection", frame);
 
@@ -409,15 +409,15 @@ int main() {
     // ▼▼▼▼▼ 좌표 변환 시각화 함수 호출 ▼▼▼▼▼
     std::pair<int, int> grid_dims_to_visualize =
         get_grid_size(); // 전체 그리드 크기 가져오기
-    // glare_is_detected_flag가 true이고 grid_coords가 유효할 때만 해당 그리드를
-    // 타겟으로, 아니면 강조 안 함
-    std::pair<int, int> target_grid_for_vis =
-        (glare_is_detected_flag && grid_coords.first != -1)
-            ? grid_coords
-            : std::make_pair(-1, -1);
 
-    visualize_grid_on_frame(frame, target_grid_for_vis, grid_dims_to_visualize,
+    cv::Mat frame_with_grid; // 결과를 받을 Mat
+
+    visualize_grid_on_frame(frame, frame_with_grid, grid_dims_to_visualize,
                             frame.cols, frame.rows);
+
+    imshow("visualize grid index", frame_with_grid);
+
+    // ▲▲▲▲▲ 좌표 변환 시각화 함수 호출 ▲▲▲▲▲
 
     imshow("glare Detection", frame);
 
