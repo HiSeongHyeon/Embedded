@@ -141,7 +141,7 @@ int main() {
                 avg_glarePos = pq.getAvgCoord();
             }
             else if (pq.shouldReturnAverage() == 0){
-                continue;
+                // 여기에 continue를 넣으면 왜 안될까요??? 공백 처리하면 원하는 동작 실행 됩니다.
             }
             else{
                 avg_glarePos = {-1, -1};

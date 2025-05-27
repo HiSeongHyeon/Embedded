@@ -46,11 +46,11 @@ int position_queue::shouldReturnAverage() const {
     if (valid_count >= 35){
         return 1;
     }
-    else if (valid_count >=10 && valid_count <35){
-        return 0;
+    else if (valid_count <10){
+        return -1;
     }
     else{
-        return -1;
+        return 0;
     }
 }
 
