@@ -26,4 +26,10 @@ std::pair<int, int> camera_to_driver_coords(
     const std::pair<double, double> &glass_size = DEFAULT_GLASS_SIZE,
     const std::pair<double, double> &glass_origin = DEFAULT_GLASS_ORIGIN);
 
+void visualize_grid_on_frame(
+    const cv::Mat &display_frame_in,
+    cv::Mat &display_frame_out, // 여기에 그림
+    const std::pair<int, int> &total_grid_dims,
+    int step_size = 20 // 얼마나 촘촘하게 확인할지 결정하는 스텝
+);
 #endif // COORDINATES_HPP

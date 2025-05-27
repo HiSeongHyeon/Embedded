@@ -24,28 +24,28 @@ cv::Point3d ray_plane_intersection(const cv::Point3d &origin,
   return origin + t * cv::Point3d(direction);
 }
 
-std::vector<int> to_bit_list(const std::pair<int, int>& grid_coord, int bits) {
-    // grid_coord.first는 col (x 좌표), grid_coord.second는 row (y 좌표)
-    int col = grid_coord.first;
-    int row = grid_coord.second;
+std::vector<int> to_bit_list(const std::pair<int, int> &grid_coord, int bits) {
+  // grid_coord.first는 col (x 좌표), grid_coord.second는 row (y 좌표)
+  int col = grid_coord.first;
+  int row = grid_coord.second;
 
-    if (col < 0 || col > 2 || row < 0 || row > 2) {
-         // Handle error: invalid input for 3x3 grid
-         return {0,0,0,0}; // Example error return
-    }
+  if (col < 0 || col > 2 || row < 0 || row > 2) {
+    // Handle error: invalid input for 3x3 grid
+    return {0, 0, 0, 0}; // Example error return
+  }
 
-    std::vector<int> bit_list;
-    bit_list.reserve(4); // 항상 4개의 비트
+  std::vector<int> bit_list;
+  bit_list.reserve(4); // 항상 4개의 비트
 
-    // 상위 2비트: Column (x 좌표) [Col_MSB, Col_LSB]
-    bit_list.push_back((col >> 1) & 1); // Col_MSB (col의 1번째 비트)
-    bit_list.push_back(col & 1);        // Col_LSB (col의 0번째 비트)
+  // 상위 2비트: Column (x 좌표) [Col_MSB, Col_LSB]
+  bit_list.push_back((col >> 1) & 1); // Col_MSB (col의 1번째 비트)
+  bit_list.push_back(col & 1);        // Col_LSB (col의 0번째 비트)
 
-    // 하위 2비트: Row (y 좌표) [Row_MSB, Row_LSB]
-    bit_list.push_back((row >> 1) & 1); // Row_MSB (row의 1번째 비트)
-    bit_list.push_back(row & 1);        // Row_LSB (row의 0번째 비트)
+  // 하위 2비트: Row (y 좌표) [Row_MSB, Row_LSB]
+  bit_list.push_back((row >> 1) & 1); // Row_MSB (row의 1번째 비트)
+  bit_list.push_back(row & 1);        // Row_LSB (row의 0번째 비트)
 
-    return bit_list;
+  return bit_list;
 }
 
 std::pair<int, int> camera_to_driver_coords(
@@ -117,4 +117,70 @@ std::pair<int, int> camera_to_driver_coords(
   grid_y = std::max(0, std::min(grid_y, grid_rows - 1));
 
   return {grid_x, grid_y};
+}
+
+void visualize_grid_on_frame(const cv::Mat &display_frame_in,
+                             cv::Mat &display_frame_out,
+                             const std::pair<int, int> &total_grid_dims,
+                             int step_size) {
+  if (display_frame_in.empty() || step_size <= 0) {
+    if (!display_frame_in.empty())
+      display_frame_in.copyTo(display_frame_out);
+    return;
+  }
+
+  display_frame_in.copyTo(
+      display_frame_out); // 원본에 그리지 않도록 복사본 사용 또는 직접 그림
+
+  int img_width = display_frame_in.cols;
+  int img_height = display_frame_in.rows;
+  int total_cols = total_grid_dims.first;
+  int total_rows = total_grid_dims.second;
+
+  // 각 그리드 인덱스에 대한 색상을 미리 정의
+  std::vector<cv::Scalar> grid_colors;
+  for (int r = 0; r < total_rows; ++r) {
+    for (int c = 0; c < total_cols; ++c) {
+      // 간단한 색상 생성 로직
+      grid_colors.push_back(
+          cv::Scalar((c * 255 / total_cols), (r * 255 / total_rows), 200));
+    }
+  }
+  if (grid_colors.empty())
+    return; // 그리드가 없으면 종료
+
+  // 이미지의 각 영역(step_size 간격)을 순회
+  for (int y_pixel = 0; y_pixel < img_height; y_pixel += step_size) {
+    for (int x_pixel = 0; x_pixel < img_width; x_pixel += step_size) {
+      // 현재 픽셀 블록의 중심 좌표
+      double current_pixel_u = static_cast<double>(x_pixel + step_size / 2);
+      double current_pixel_v = static_cast<double>(y_pixel + step_size / 2);
+
+      if (current_pixel_u >= img_width || current_pixel_v >= img_height)
+        continue;
+
+      // 이 픽셀 좌표가 어떤 그리드 셀로 매핑되는지 계산
+      std::pair<double, double> sun_center_for_transform = {current_pixel_u,
+                                                            current_pixel_v};
+      std::pair<int, int> mapped_grid =
+          camera_to_driver_coords(sun_center_for_transform);
+
+      if (mapped_grid.first != -1 &&
+          mapped_grid.second != -1) { // 유효한 그리드 좌표로 매핑된 경우
+        // 1차원 그리드 인덱스로 변환
+        int grid_1d_idx = mapped_grid.second * total_cols + mapped_grid.first;
+
+        if (grid_1d_idx >= 0 && grid_1d_idx < grid_colors.size()) {
+          // 해당 픽셀 블록을 매핑된 그리드의 색상으로 칠하기
+          cv::Rect roi(x_pixel, y_pixel, step_size, step_size);
+
+          // 반투명하게 칠하기
+          cv::Mat roi_mat = display_frame_out(roi);
+          cv::Mat color_roi(roi.size(), CV_8UC3, grid_colors[grid_1d_idx]);
+          double alpha = 0.4;
+          cv::addWeighted(color_roi, alpha, roi_mat, 1.0 - alpha, 0.0, roi_mat);
+        }
+      }
+    }
+  }
 }
