@@ -143,7 +143,6 @@ int main() {
                 avg_glarePos = pq.getAvgCoord();
             }
             else if (pq.shouldReturnAverage() == 0){
-                continue;
                 // 여기에 continue를 넣으면 왜 안될까요??? 공백 처리하면 원하는 동작 실행 됩니다.
             }
             else{
@@ -181,12 +180,12 @@ int main() {
         bit_list_for_grid = bit_list;
         }
 
-            // [추후에 활성화] 아두이노 연결시
-            // (추가) Arduino 명령 바이트 생성 및 전송
-            // if (!SerialCom::sendCommandToArduino(glare_is_detected_flag, grid_coords)) {
-            //         cerr << "[Main] Error: Failed to send command to Arduino via SerialCom module." << endl;
-            // }
-            //       
+        // [추후에 활성화] 아두이노 연결시
+        // (추가) Arduino 명령 바이트 생성 및 전송
+        // if (!SerialCom::sendCommandToArduino(glare_is_detected_flag, grid_coords)) {
+        //         cerr << "[Main] Error: Failed to send command to Arduino via SerialCom module." << endl;
+        // }
+        //       
 
             
 
@@ -212,16 +211,15 @@ int main() {
 
         cout << "Processing time: " << duration << " ms\n";
 
-        // ▼▼▼▼▼ 좌표 변환 시각화 함수 호출 ▼▼▼▼▼
-        std::pair<int, int> grid_dims_to_visualize =
-            get_grid_size(); // 전체 그리드 크기 가져오기
+        // // ▼▼▼▼▼ 좌표 변환 시각화 함수 호출 ▼▼▼▼▼
+        // std::pair<int, int> grid_dims_to_visualize =
+        //     get_grid_size(); // 전체 그리드 크기 가져오기
 
-        cv::Mat frame_with_grid; // 결과를 받을 Mat
+        // cv::Mat frame_with_grid; // 결과를 받을 Mat
 
-        visualize_grid_on_frame(frame, frame_with_grid, grid_dims_to_visualize,
-                                frame.cols, frame.rows);
+        // visualize_grid_on_frame(frame, frame_with_grid, grid_dims_to_visualize, frame.cols, frame.rows);
 
-        imshow("visualize grid index", frame_with_grid);
+        // imshow("visualize grid index", frame_with_grid);
 
         // ▲▲▲▲▲ 좌표 변환 시각화 함수 호출 ▲▲▲▲▲
 
