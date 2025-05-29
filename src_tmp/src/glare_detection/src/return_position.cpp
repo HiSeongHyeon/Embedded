@@ -42,7 +42,7 @@ int position_queue::shouldReturnAverage() const {
     for (const auto& entry : queue_) {
         if (entry.second) valid_count++;
     }
-    
+
     if (valid_count >= 35){
         return 1;
     }
@@ -72,7 +72,7 @@ bool position_queue::isWithinRange(const Coord& pos, const Coord& avg_pos, int t
     if(pos.x < 0 || pos.y < 0) return false;
     // if(avg_pos.x <0 || avg_pos.y < 0) return false;
     // if(avg_pos.x ==0 && avg_pos.y==0) return true;
-    
+
     return std::abs(pos.x - avg_pos.x) <= threshold && std::abs(pos.y - avg_pos.y) <= threshold;
 }
 
@@ -157,7 +157,7 @@ cv::Point2f glare_position::getMaxCombinedCenter(const cv::Mat& combined) {
     else{
         cv::drawContours(largestRegion, std::vector<std::vector<cv::Point>>{maxContour}, -1, cv::Scalar(255), cv::FILLED);
     }
-    
+
     // Step 5: getGlareCoordinates()에 binary mask 전달
     return getGlareCoordinates(largestRegion);
 }

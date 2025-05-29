@@ -86,13 +86,6 @@ cv::Mat glare_detector::computeGeometricMap(const cv::Mat& gphoto) {
     blurred.convertTo(blurred8u, CV_8U, 255);
 
     std::vector<cv::Vec3f> circles;
-    // cv::HoughCircles(blurred8u, circles, 
-    // cv::HOUGH_GRADIENT,  // 알고리즘 방식
-    // 1,                   // 누적 버퍼 해상도 비율
-    // 20,                  // 중심 간 최소 거리
-    // 100,                 // Canny upper threshold
-    // 30,                  // 중심 검출 임계값
-    // 10, 200);            // 반지름 최소/최대
     cv::HoughCircles(blurred8u, circles, cv::HOUGH_GRADIENT, 1, 20, 75, 30, 10, 200);
 
     cv::Mat ggeo = cv::Mat::zeros(gphoto.size(), CV_32F);
@@ -132,11 +125,8 @@ cv::Mat glare_detector::computePriorityMap(const cv::Mat& gphoto, const cv::Mat&
             else if (p >= 0.9f && c<=0.2f) {
                 priority.at<uchar>(y, x) = 2;
             } 
-            // // glare 존재 x 
-            // else priority.at<uchar>(y, x) = 3; // priority 3 추가
         }
     }
-    
     
     return priority;
 }
@@ -186,4 +176,16 @@ double glare_detector::isBrightArea(const cv::Mat& frame) {
     cv::cvtColor(frame, gray, cv::COLOR_BGR2GRAY);
 
     return cv::mean(gray)[0]/255;
+}
+
+double glare_detector::isStandardArea(const cv::Mat& frame) {
+    cv::Mat gray;
+    cv::cvtColor(frame, gray, cv::COLOR_BGR2GRAY);
+
+    // 평균과 표준편차 계산
+    cv::Scalar mean, stddev;
+    cv::meanStdDev(gray, mean, stddev);
+
+    // 정규화된 표준편차 반환 (0~1 범위)
+    return stddev[0] / 128.0;  // 128은 대략적인 최대 대비 기준값
 }

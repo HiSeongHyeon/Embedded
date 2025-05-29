@@ -36,6 +36,7 @@ public:
     void drawGlareContours(const cv::Mat& inputImage, cv::Mat& frame);
 
     double isBrightArea(const cv::Mat& frame);
+    double isStandardArea(const cv::Mat& frame);
 };
 
 #endif
