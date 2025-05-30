@@ -1,5 +1,7 @@
 #define CAMERA
-// #define VIDEO
+#define VIDEO
+#define ARD_CONNECT // 시리얼 통신 활성화
+#define GRID_TEST // 그리드 좌표 테스트 모듈 활성화
 
 #ifdef CAMERA
 
@@ -11,7 +13,7 @@
 #include <string>
 #include <chrono>
 
-// 추가가
+// 추가
 #include <utility> // std::pair
 #include <string>
 
@@ -27,11 +29,10 @@ using namespace std;
 using namespace cv;
 using namespace std::chrono;
 
-
-// [추후에 활성화] 아두이노 연결시
 // 프로그램 종료 시 시리얼 포트 자동 닫기를 위한 핸들러
-void cleanup_serial_main_handler() { SerialCom::closePort(); }
-// 
+#ifdef ARD_CONNECT
+    void cleanup_serial_main_handler() { SerialCom::closePort(); }
+#endif
 
 int main() {
     glare_position gp;
@@ -41,16 +42,16 @@ int main() {
     cv::Point2f glarePos;
     cv::Point2f avg_glarePos;
 
-    // // [추후에 활성화] 아두이노 연결시
-    // // (추가) 시리얼 포트 초기화
-    // const char *arduino_port = "/dev/ttyACM0"; // <<--- 실제 Arduino 포트로 수정
-    // if (!SerialCom::initialize(arduino_port, B115200)) { // Baud rate 115200
-    //     cerr << "Error: Failed to initialize serial port " << arduino_port << endl;
-    // return -1; // 시리얼 포트 열기 실패 시 종료
-    // }
-    // atexit(cleanup_serial_main_handler); // 프로그램 종료 시 포트 자동 닫기 등록
-    // cout << "[Serial] Port " << arduino_port << " opened successfully." << endl;
-    // //여기까지
+    // 시리얼 포트 초기화
+    #ifdef ARD_CONNECT
+        const char *arduino_port = "/dev/ttyACM0"; // <<--- 실제 Arduino 포트
+        if (!SerialCom::initialize(arduino_port, B115200)) { // Baud rate 115200
+            cerr << "Error: Failed to initialize serial port " << arduino_port << endl;
+        return -1; // 시리얼 포트 열기 실패 시 종료
+        }
+        atexit(cleanup_serial_main_handler); // 프로그램 종료 시 포트 자동 닫기 등록
+        cout << "[Serial] Port " << arduino_port << " opened successfully." << endl;
+    #endif
 
     bool debug_mode = false;
     const double brightness_threshold = 0.2;
@@ -192,11 +193,12 @@ int main() {
             bit_list_for_grid = bit_list;
         }
 
-        // // [추후에 활성화] 아두이노 연결시
-        // // (추가) Arduino 명령 바이트 생성 및 전송
-        // if (!SerialCom::sendCommandToArduino(glare_is_detected_flag, grid_coords)) {
-        //         cerr << "[Main] Error: Failed to send command to Arduino via SerialCom module." << endl;
-        // }
+        // Arduino 명령 바이트 생성 및 전송
+        #ifdef ARD_CONNECT
+            if (!SerialCom::sendCommandToArduino(glare_is_detected_flag, grid_coords)) {
+                    cerr << "[Main] Error: Failed to send command to Arduino via SerialCom module." << endl;
+            }
+        #endif
 
 
         auto end = high_resolution_clock::now();
@@ -218,13 +220,25 @@ int main() {
 
         cout << "Total Processing time: " << duration << " ms\n";
 
+        // 좌표 변환 시각화 함수 (테스트용)
+        #ifdef GRID_TEST
+            std::pair<int, int> grid_dims_to_visualize = get_grid_size(); // 전체 그리드 크기 가져오기
 
+            cv::Mat frame_with_grid; // 결과를 받을 Mat
+
+            visualize_grid_on_frame(frame, frame_with_grid, grid_dims_to_visualize,
+                                    frame.cols, frame.rows);
+
+            imshow("visualize grid index", frame_with_grid);
+        #endif
 
         imshow("glare Detection", frame);
 
         if (waitKey(1) == 27) {
             glare_is_detected_flag = 0;
-            SerialCom::sendCommandToArduino(glare_is_detected_flag, grid_coords);
+            #ifdef ARD_CONNECT
+                SerialCom::sendCommandToArduino(glare_is_detected_flag, grid_coords);
+            #endif
             break;
         }
     }
