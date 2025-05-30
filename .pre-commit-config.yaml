@@ -28,3 +28,4 @@ repos:
     hooks:
       - id: clang-format
         files: \.(cpp|hpp|h|cxx)$
+        exclude: ^src_tmp/src/glare_detection/src/main\.cpp$
