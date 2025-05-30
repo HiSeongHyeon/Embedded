@@ -34,3 +34,13 @@ target_link_libraries(run_mapping_test PUBLIC
     coordinate_mapping_lib      # 우리가 만든 라이브러리
     ${OpenCV_LIBS}              # OpenCV 라이브러리
 )
+
+add_executable(run_serial_test
+    src/test_serial_main.cpp
+)
+
+target_link_libraries(run_serial_test PUBLIC
+    coordinate_mapping_lib
+    serial_communication_lib  # 시리얼 통신 기능 사용
+    ${OpenCV_LIBS}
+)
