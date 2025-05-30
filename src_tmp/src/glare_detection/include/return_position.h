@@ -20,10 +20,10 @@ class position_queue {
         using Entry = std::pair<Coord, bool>;
 
         Coord avgCoord;
-        position_queue(size_t max_size = 20);
+        position_queue(size_t max_size = 50);
     
         void push(const Coord& coord);
-        bool shouldReturnAverage() const;
+        int shouldReturnAverage() const;
         Coord getAvgCoord() const;
         //Coord getAveragePosition() const;
         
@@ -32,7 +32,7 @@ class position_queue {
         size_t max_size_;
 
         Coord computeAverageOfValid() const;
-        bool isWithinRange(const Coord& a, const Coord& b, int threshold = 100) const;
+        bool isWithinRange(const Coord& a, const Coord& b, int threshold = 200) const;
     };
 
 #endif
