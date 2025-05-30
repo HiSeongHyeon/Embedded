@@ -53,21 +53,21 @@ int main() {
     // //여기까지
 
     bool debug_mode = false;
-    const double brightness_threshold = -1; 
-    const double stddev_threshold = 50;
+    const double brightness_threshold = 0.2;
+    const double stddev_threshold = 0.5;
 
     // 기존 카메라 스트림 코드
-    // const char* cmd =
-    //     "libcamera-vid -t 0 -n --width 640 --height 480 --codec mjpeg -o - 2>/dev/null | "
-    //     // "ffmpeg -f mjpeg -i - -f image2pipe -vcodec copy -";
-    //     "ffmpeg -f mjpeg -analyzeduration 10000000 -probesize 10000000 -i - -f image2pipe -vcodec copy -";
+    const char* cmd =
+        "libcamera-vid -t 0 -n --width 640 --height 480 --codec mjpeg -o - 2>/dev/null | "
+        // "ffmpeg -f mjpeg -i - -f image2pipe -vcodec copy -";
+        "ffmpeg -f mjpeg -analyzeduration 10000000 -probesize 10000000 -i - -f image2pipe -vcodec copy -";
 
     // 노출 수동 조절 코드
-    const char* cmd =
-        "libcamera-vid -t 0 -n --width 640 --height 480 "
-        "--shutter 100000 --gain 1.0 --awbgains 1.2,1.2 "
-        "--codec mjpeg -o - 2>/dev/null | "
-        "ffmpeg -f mjpeg -analyzeduration 10000000 -probesize 10000000 -i - -f image2pipe -vcodec copy -";
+    // const char* cmd =
+    //     "libcamera-vid -t 0 -n --width 640 --height 480 "
+    //     "--shutter 100000 --gain 1.0 --awbgains 1.2,1.2 "
+    //     "--codec mjpeg -o - 2>/dev/null | "
+    //     "ffmpeg -f mjpeg -analyzeduration 10000000 -probesize 10000000 -i - -f image2pipe -vcodec copy -";
 
 
     FILE* pipe = popen(cmd, "r");
@@ -120,10 +120,11 @@ int main() {
         auto brightness = gd.isBrightArea(frame);
         auto stddev = gd.isStandardArea(frame);
 
+        cout << "brightness: "<< brightness << ", stddev: "<< stddev << "\n";
 
         // check foward brightness state, 차량 전방 밝기 상태와 표준 편차를 동시에 고려
         // 밝으면서 표준편차가 적은 곳, 어두운데 표준편차가 큰 곳(태양에 의한 과도한 노출 조정 or 그림자 고려려)
-        if ((brightness > brightness_threshold && stddev < stddev_threshold)||(brightness < brightness_threshold && stddev > stddev_threshold)) {
+        if (brightness > brightness_threshold || stddev > stddev_threshold) {
             // intensity, saturation, contrast에 따라 gphoto map 생성
             cv::Mat gphoto = gd.computePhotometricMap(frame);
 
@@ -665,3 +666,5 @@ int main() {
     cout << ">>>>> Video Ended <<<<<\n";
     return 0;      
 }
+
+#endif
