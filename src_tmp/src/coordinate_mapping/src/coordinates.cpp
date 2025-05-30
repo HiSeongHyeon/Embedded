@@ -1,3 +1,5 @@
+// clang-format off
+
 #include "coordinates.hpp"
 #include "config.hpp"
 #include "get_grid_size.hpp"
@@ -85,9 +87,24 @@ std::pair<int, int> camera_to_driver_coords(
   double du = std::tan(angle_x_rad);
   double dv = -std::tan(angle_y_rad);
   double dw = 1.0; // 카메라 기본 전방은 +z(+w) 방향
+  
+  cv::Vec3d D_no_rotation(du, dv, dw);
 
-  cv::Vec3d D_vec(du, dv, dw);
-  D_vec = cv::normalize(D_vec);
+  double pitch_rad = to_radians(DEFAULT_CAMERA_PITCH_DEGREES);
+
+  // X축 기준 회전 행렬 생성
+  // Rx = [1  0       0     ]
+  //      [0  cos(p) -sin(p)]
+  //      [0  sin(p)  cos(p)]
+  cv::Matx33d rotation_matrix_x(
+        1, 0, 0,
+        0, std::cos(pitch_rad), -std::sin(pitch_rad),
+        0, std::sin(pitch_rad), std::cos(pitch_rad)
+  );
+
+  // 기본 방향 벡터에 회전 행렬 적용
+  cv::Vec3d D_rotated = rotation_matrix_x * D_no_rotation;
+  cv::Vec3d D_vec = cv::normalize(D_rotated); // 최종 방향 벡터 정규화
 
   // 광선의 원점은 driver_eye_pos로 설정
   cv::Point3d intersection =
