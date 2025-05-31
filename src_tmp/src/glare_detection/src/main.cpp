@@ -222,12 +222,15 @@ int main() {
 
         // 좌표 변환 시각화 함수 (테스트용)
         #ifdef GRID_TEST
-            std::pair<int, int> grid_dims_to_visualize = get_grid_size(); // 전체 그리드 크기 가져오기
+            std::pair<int, int> grid_dims_to_visualize = 
+            get_grid_size(); // 전체 그리드 크기 가져오기
 
             cv::Mat frame_with_grid; // 결과를 받을 Mat
 
-            visualize_grid_on_frame(frame, frame_with_grid, grid_dims_to_visualize,
-                                    frame.cols, frame.rows);
+            visualize_grid_on_frame(frame,
+                                    frame_with_grid, 
+                                    grid_dims_to_visualize
+                                    );
 
             imshow("visualize grid index", frame_with_grid);
         #endif
