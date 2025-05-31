@@ -30,9 +30,7 @@ using namespace cv;
 using namespace std::chrono;
 
 // 프로그램 종료 시 시리얼 포트 자동 닫기를 위한 핸들러
-#ifdef ARD_CONNECT
-    void cleanup_serial_main_handler() { SerialCom::closePort(); }
-#endif
+void cleanup_serial_main_handler() { SerialCom::closePort(); }
 
 int main() {
     glare_position gp;
@@ -59,7 +57,7 @@ int main() {
 
     // 기존 카메라 스트림 코드
     const char* cmd =
-        "libcamera-vid -t 0 -n --width 640 --height 480 --codec mjpeg -o - 2>/dev/null | "
+        "libcamera-vid -t 0 -n --width 1920 --height 480 --codec mjpeg -o - 2>/dev/null | "
         // "ffmpeg -f mjpeg -i - -f image2pipe -vcodec copy -";
         "ffmpeg -f mjpeg -analyzeduration 10000000 -probesize 10000000 -i - -f image2pipe -vcodec copy -";
 
@@ -194,12 +192,9 @@ int main() {
         }
 
         // Arduino 명령 바이트 생성 및 전송
-        #ifdef ARD_CONNECT
-            if (!SerialCom::sendCommandToArduino(glare_is_detected_flag, grid_coords)) {
-                    cerr << "[Main] Error: Failed to send command to Arduino via SerialCom module." << endl;
-            }
-        #endif
-
+        if (!SerialCom::sendCommandToArduino(glare_is_detected_flag, grid_coords)) {
+                cerr << "[Main] Error: Failed to send command to Arduino via SerialCom module." << endl;
+        }
 
         auto end = high_resolution_clock::now();
         auto duration = duration_cast<milliseconds>(end - start).count();    
