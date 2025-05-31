@@ -14,7 +14,7 @@ const std::pair<double, double> DEFAULT_FOV = {66.0, 41.0};
 const cv::Point3d DEFAULT_CAMERA_POS(0.75, 0.8, 1.2);
 
 // 운전자 눈 위치 (미터 단위): (x, y, z)
-const cv::Point3d DEFAULT_DRIVER_POS(0.35, 0.98, 0.0);
+const cv::Point3d DEFAULT_DRIVER_POS(1.15, 0.98, 0.0);
 
 // 운전자 좌표계에서 앞유리(윈드실드) 평면의 z 좌표 (미터 단위)
 const double DEFAULT_WINDSHIELD_Z = 1.2;
