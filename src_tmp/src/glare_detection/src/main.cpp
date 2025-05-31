@@ -52,12 +52,13 @@ int main() {
     #endif
 
     bool debug_mode = false;
+    // 0.2 -> 0.8
     const double brightness_threshold = 0.2;
     const double stddev_threshold = 0.5;
 
     // 기존 카메라 스트림 코드
     const char* cmd =
-        "libcamera-vid -t 0 -n --width 1920 --height 480 --codec mjpeg -o - 2>/dev/null | "
+        "libcamera-vid -t 0 -n --width 1280 --height 480 --codec mjpeg -o - 2>/dev/null | "
         // "ffmpeg -f mjpeg -i - -f image2pipe -vcodec copy -";
         "ffmpeg -f mjpeg -analyzeduration 10000000 -probesize 10000000 -i - -f image2pipe -vcodec copy -";
 

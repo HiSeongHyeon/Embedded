@@ -43,15 +43,27 @@ int position_queue::shouldReturnAverage() const {
         if (entry.second) valid_count++;
     }
 
-    if (valid_count >= 35){
+    // 35, 10
+    if (valid_count >= 7){
         return 1;
     }
-    else if (valid_count <10){
+    else if (valid_count <4){
         return -1;
     }
     else{
         return 0;
     }
+
+    // // 35, 10
+    // if (valid_count >= 35){
+    //     return 1;
+    // }
+    // else if (valid_count <10){
+    //     return -1;
+    // }
+    // else{
+    //     return 0;
+    // }
 }
 
 //compute avg in queue for push

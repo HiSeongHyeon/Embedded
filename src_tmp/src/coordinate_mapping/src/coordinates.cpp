@@ -74,8 +74,10 @@ std::pair<int, int> camera_to_driver_coords(
   double img_h = static_cast<double>(image_size.second);
   double fov_x_deg = fov.first;
   double fov_y_deg = fov.second;
-  double x_center_px = corrected_sun_center.first;
-  double y_center_px = corrected_sun_center.second;
+  double x_center_px = sun_center.first;
+  double y_center_px = sun_center.second;
+  // double x_center_px = corrected_sun_center.first;
+  // double y_center_px = corrected_sun_center.second;
 
   double norm_x = (x_center_px / img_w - 0.5) * 2.0;
   double norm_y = (y_center_px / img_h - 0.5) * 2.0;

@@ -5,7 +5,7 @@
 #include <utility>
 
 // 이미지 해상도 (픽셀 단위): (width, height)
-const std::pair<int, int> DEFAULT_IMAGE_SIZE = {1920, 480};
+const std::pair<int, int> DEFAULT_IMAGE_SIZE = {1280, 480};
 
 // 카메라 시야각 (수평, 수직) in degrees
 const std::pair<double, double> DEFAULT_FOV = {66.0, 41.0};
@@ -14,10 +14,10 @@ const std::pair<double, double> DEFAULT_FOV = {66.0, 41.0};
 const cv::Point3d DEFAULT_CAMERA_POS(0.75, 0.8, 1.2);
 
 // 운전자 눈 위치 (미터 단위): (x, y, z)
-const cv::Point3d DEFAULT_DRIVER_POS(0.75, 0.98, 0.0);
+const cv::Point3d DEFAULT_DRIVER_POS(0.35, 0.98, 0.0);
 
 // 운전자 좌표계에서 앞유리(윈드실드) 평면의 z 좌표 (미터 단위)
-const double DEFAULT_WINDSHIELD_Z = 0.6;
+const double DEFAULT_WINDSHIELD_Z = 1.2;
 
 // 윈드실드(유리창)의 물리적 크기 (미터 단위): (width, height)
 const std::pair<double, double> DEFAULT_GLASS_SIZE = {1.5, 0.5};
