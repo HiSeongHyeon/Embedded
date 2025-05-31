@@ -22,7 +22,7 @@ IMAGE_SAVE_PATH = "./calibration_images/"
 # -----------------------------------------------------
 
 print("카메라 캘리브레이션을 시작합니다.")
-print(f"체커보드 내부 코너: 가로 {CHECKERBOARD_WIDTH}, 세로 {CHECK_HEIGHT}")
+print(f"체커보드 내부 코너: 가로 {CHECKERBOARD_WIDTH}, 세로 {CHECKERBOARD_HEIGHT}")
 print(f"체커보드 한 칸 크기: {SQUARE_SIZE_MM}mm")
 print(f"캡처할 이미지 개수: {NUM_IMAGES_TO_CAPTURE}")
 print(f"이미지 저장 경로: {IMAGE_SAVE_PATH}")
