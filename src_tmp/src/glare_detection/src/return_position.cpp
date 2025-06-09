@@ -83,7 +83,7 @@ position_queue::Coord position_queue::computeAverageOfValid() const {
 bool position_queue::isWithinRange(const Coord& pos, const Coord& avg_pos, int threshold) const {
     if(pos.x < 0 || pos.y < 0) return false;
     // if(avg_pos.x <0 || avg_pos.y < 0) return false;
-    // if(avg_pos.x ==0 && avg_pos.y==0) return true;
+    if(avg_pos.x ==0 && avg_pos.y==0) return true; // 최초 입력이 음수가 아니라면 true로 받음
 
     return std::abs(pos.x - avg_pos.x) <= threshold && std::abs(pos.y - avg_pos.y) <= threshold;
 }

@@ -1,7 +1,6 @@
 #define CAMERA
 #define VIDEO
-#define ARD_CONNECT // 시리얼 통신 활성화
-#define GRID_TEST // 그리드 좌표 테스트 모듈 활성화
+// #define GRID_TEST // 그리드 좌표 테스트 모듈 활성화
 
 #ifdef CAMERA
 
@@ -38,36 +37,34 @@ int main() {
     position_queue pq;
 
     cv::Point2f glarePos;
-    cv::Point2f avg_glarePos;
+    cv::Point2f avg_glarePos = {0, 0};
 
     // 시리얼 포트 초기화
-    #ifdef ARD_CONNECT
-        const char *arduino_port = "/dev/ttyACM0"; // <<--- 실제 Arduino 포트
-        if (!SerialCom::initialize(arduino_port, B115200)) { // Baud rate 115200
-            cerr << "Error: Failed to initialize serial port " << arduino_port << endl;
-        return -1; // 시리얼 포트 열기 실패 시 종료
-        }
-        atexit(cleanup_serial_main_handler); // 프로그램 종료 시 포트 자동 닫기 등록
-        cout << "[Serial] Port " << arduino_port << " opened successfully." << endl;
-    #endif
+    const char *arduino_port = "/dev/ttyACM0"; // <<--- 실제 Arduino 포트
+    if (!SerialCom::initialize(arduino_port, B115200)) { // Baud rate 115200
+        cerr << "Error: Failed to initialize serial port " << arduino_port << endl;
+    return -1; // 시리얼 포트 열기 실패 시 종료
+    }
+    atexit(cleanup_serial_main_handler); // 프로그램 종료 시 포트 자동 닫기 등록
+    cout << "[Serial] Port " << arduino_port << " opened successfully." << endl;
 
-    bool debug_mode = false;
+    bool debug_mode = true;
     // 0.2 -> 0.8
     const double brightness_threshold = 0.2;
     const double stddev_threshold = 0.5;
 
-    // 기존 카메라 스트림 코드
-    const char* cmd =
-        "libcamera-vid -t 0 -n --width 1280 --height 480 --codec mjpeg -o - 2>/dev/null | "
-        // "ffmpeg -f mjpeg -i - -f image2pipe -vcodec copy -";
-        "ffmpeg -f mjpeg -analyzeduration 10000000 -probesize 10000000 -i - -f image2pipe -vcodec copy -";
+    // // 기존 카메라 스트림 코드
+    // const char* cmd =
+    //     "libcamera-vid -t 0 -n --width 1280 --height 480 --codec mjpeg -o - 2>/dev/null | "
+    //     // "ffmpeg -f mjpeg -i - -f image2pipe -vcodec copy -";
+    //     "ffmpeg -f mjpeg -analyzeduration 10000000 -probesize 10000000 -i - -f image2pipe -vcodec copy -";
 
     // 노출 수동 조절 코드
-    // const char* cmd =
-    //     "libcamera-vid -t 0 -n --width 640 --height 480 "
-    //     "--shutter 100000 --gain 1.0 --awbgains 1.2,1.2 "
-    //     "--codec mjpeg -o - 2>/dev/null | "
-    //     "ffmpeg -f mjpeg -analyzeduration 10000000 -probesize 10000000 -i - -f image2pipe -vcodec copy -";
+    const char* cmd =
+        "libcamera-vid -t 0 -n --width 1280 --height 480 "
+        "--shutter 1250 --gain 1.0 --awbgains 1.2,1.2 "
+        "--codec mjpeg -o - 2>/dev/null | "
+        "ffmpeg -f mjpeg -analyzeduration 10000000 -probesize 10000000 -i - -f image2pipe -vcodec copy -";
 
 
     FILE* pipe = popen(cmd, "r");
@@ -145,7 +142,7 @@ int main() {
                 avg_glarePos = pq.getAvgCoord();
             }
             else if (pq.shouldReturnAverage() == 0){
-                // 여기에 continue를 넣으면 왜 안될까요??? 공백 처리하면 원하는 동작 실행 됩니다.
+                // continue;// 여기에 continue를 넣으면 왜 안될까요??? 공백 처리하면 원하는 동작 실행 됩니다.
             }
             else{
                 avg_glarePos = {-1, -1};
@@ -164,12 +161,14 @@ int main() {
                 // ✅ glarePos를 기반으로 imshow에 원 표시
                 cv::circle(frame, glarePos, 10, cv::Scalar(0, 255, debug_color), 2);
                 cout << "Detected glare position: (" << glarePos.x << ", " << glarePos.y << ")\n";
+                cout << "Detected avg glare position: (" << avg_glarePos.x << ", " << avg_glarePos.y << ")\n";
 
-            } else {
+            } 
+            // else {
 
-                cv::circle(frame, avg_glarePos, 10, cv::Scalar(0, 255, debug_color), 2);
-                cout << "Detected glare position: (" << avg_glarePos.x << ", " << avg_glarePos.y << ")\n";
-            }
+            //     cv::circle(frame, avg_glarePos, 10, cv::Scalar(0, 255, debug_color), 2);
+            //     cout << "Detected glare position: (" << avg_glarePos.x << ", " << avg_glarePos.y << ")\n";
+            // }
 
         } 
         else{
@@ -235,9 +234,7 @@ int main() {
 
         if (waitKey(1) == 27) {
             glare_is_detected_flag = 0;
-            #ifdef ARD_CONNECT
-                SerialCom::sendCommandToArduino(glare_is_detected_flag, grid_coords);
-            #endif
+            SerialCom::sendCommandToArduino(glare_is_detected_flag, grid_coords);
             break;
         }
     }
