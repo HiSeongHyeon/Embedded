@@ -37,8 +37,8 @@ namespace SerialCom {
       tty.c_cflag &= CRTSCTS;
       tty.c_lflag &= ~(ICANON | ECHO | ECHOE | ISIG);
       tty.c_oflag &= ~OPOST;
-      tty.c_cc[VMIN] = 0;
-      tty.c_cc[VTIME] = 1;
+      tty.c_cc[VMIN] = 1;
+      tty.c_cc[VTIME] = 5;
       cfsetispeed(&tty, baud_rate);
       cfsetospeed(&tty, baud_rate);
       tcflush(serial_port_fd, TCIFLUSH);
