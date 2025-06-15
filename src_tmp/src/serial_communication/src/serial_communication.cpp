@@ -33,7 +33,8 @@ namespace SerialCom {
       tty.c_cflag |= CS8;
       tty.c_cflag &= ~PARENB;
       tty.c_cflag &= ~CSTOPB;
-      tty.c_cflag &= ~CRTSCTS;
+      //tty.c_cflag &= ~CRTSCTS;
+      tty.c_cflag &= CRTSCTS;
       tty.c_lflag &= ~(ICANON | ECHO | ECHOE | ISIG);
       tty.c_oflag &= ~OPOST;
       tty.c_cc[VMIN] = 0;
