@@ -115,6 +115,7 @@ sudo apt install build-essential g++ cmake libopencv-dev python3-opencv python3-
 
 ## 📽️ 시연 영상
 프로젝트의 작동 방식을 아래 영상으로 확인해보세요.
+
 [![시연 영상](https://img.youtube.com/vi/IC63PYgABys/0.jpg)](https://www.youtube.com/watch?v=IC63PYgABys)
 
 ## 👏 포스터
