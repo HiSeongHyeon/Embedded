@@ -31,26 +31,8 @@ cv::Mat glare_detector::computePhotometricMap(const cv::Mat& inputRGB) {
     return gphoto;
 }
 
-// Local Contrast 계산: RMS 기반, stride 4, blockSize 17 사용
-// cv::Mat glare_detector::computeLocalContrast(const cv::Mat& intensity) {
-//     int blockSize = 17;
-//     int stride = 4;
-//     cv::Mat contrast = cv::Mat::zeros(intensity.size(), CV_32F);
-
-//     for (int y = 0; y <= intensity.rows - blockSize; y += stride) {
-//         for (int x = 0; x <= intensity.cols - blockSize; x += stride) {
-//             cv::Rect roi(x, y, blockSize, blockSize);
-//             cv::Mat block = intensity(roi);
-//             cv::Scalar mean, stddev;
-//             cv::meanStdDev(block, mean, stddev);
-//             float val = stddev[0] / std::max(10.0, mean[0]);
-//             contrast(roi).setTo(val);
-//         }
-//     }
-//     return contrast;
-// }
+// Local Contrast를 계산하는 함수
 cv::Mat glare_detector::computeLocalContrast(const cv::Mat& intensity) {
-    //CV_Assert(intensity.type() == CV_8UC1);
 
     cv::Mat intensityFloat;
     intensity.convertTo(intensityFloat, CV_32F);
@@ -103,12 +85,7 @@ cv::Mat glare_detector::combineMaps(const cv::Mat& gphoto, const cv::Mat& ggeo) 
     return 1.0 * gphoto + 1.0 * ggeo;
 }
 
-cv::Mat glare_detector::combineMapsbyprod(const cv::Mat& gphoto, const cv::Mat& ggeo) {
-    cv::Mat weighted_geo = 0.7 + 0.3 * ggeo;
-    cv::Mat combined = gphoto.mul(weighted_geo);  // element-wise product
-    return combined;
-}
-
+// glare의 priority 계산
 cv::Mat glare_detector::computePriorityMap(const cv::Mat& gphoto, const cv::Mat& ggeo) {
     cv::Mat priority = cv::Mat::ones(gphoto.size(), CV_8U) * 3;
 
@@ -135,6 +112,7 @@ double glare_detector::getDetectedArea() const {
     return detectedArea;
 }
 
+// glare 영역 도식화
 void glare_detector::drawGlareContours(const cv::Mat& inputImage, cv::Mat& frame) {
     cv::Mat gray;
 
@@ -151,7 +129,7 @@ void glare_detector::drawGlareContours(const cv::Mat& inputImage, cv::Mat& frame
         gray = inputImage.clone();
     } 
     else {
-        std::cerr << "❌ 지원되지 않는 이미지 형식입니다.\n";
+        std::cerr << "지원되지 않는 이미지 형식입니다.\n";
         return;
     }
 
@@ -171,6 +149,7 @@ void glare_detector::drawGlareContours(const cv::Mat& inputImage, cv::Mat& frame
     }
 }
 
+// 차량 전방 평균 밝기 상태 판단
 double glare_detector::isBrightArea(const cv::Mat& frame) {
     cv::Mat gray;
     cv::cvtColor(frame, gray, cv::COLOR_BGR2GRAY);
@@ -178,6 +157,7 @@ double glare_detector::isBrightArea(const cv::Mat& frame) {
     return cv::mean(gray)[0]/255;
 }
 
+// 차량 전방 밝기 표준편차 계산
 double glare_detector::isStandardArea(const cv::Mat& frame) {
     cv::Mat gray;
     cv::cvtColor(frame, gray, cv::COLOR_BGR2GRAY);

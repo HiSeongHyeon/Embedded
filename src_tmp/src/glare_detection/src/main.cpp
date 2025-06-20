@@ -1,6 +1,6 @@
 #define CAMERA
 #define VIDEO
-// #define GRID_TEST // 그리드 좌표 테스트 모듈 활성화
+#define GRID_TEST // 그리드 좌표 테스트 모듈 활성화
 
 #ifdef CAMERA
 
@@ -62,9 +62,9 @@ int main() {
     // 노출 수동 조절 코드
     const char* cmd =
         "libcamera-vid -t 0 -n --width 1280 --height 480 "
-        "--shutter 1250 --gain 1.0 --awbgains 1.2,1.2 "
+        "--shutter 7000 --gain 1.0 --awbgains 1.2,1.2 "
         "--codec mjpeg -o - 2>/dev/null | "
-        "ffmpeg -f mjpeg -analyzeduration 10000000 -probesize 10000000 -i - -f image2pipe -vcodec copy -";
+        "stdbuf -o0 ffmpeg -f mjpeg -analyzeduration 10000000 -probesize 10000000 -i - -f image2pipe -vcodec copy -";
 
 
     FILE* pipe = popen(cmd, "r");
@@ -79,6 +79,7 @@ int main() {
     bool first_frame = true;
 
     while (true) {
+        ////////////////////      카메라 파이프 연결      ////////////////////
         buffer.clear();
         start_found = false;
 
@@ -111,7 +112,9 @@ int main() {
             gp.gd.startVideo(frame);
             first_frame = false;
         }
-
+        //////////////////////////////////////////////////////////////////////
+        
+        // glare detect 시간, 실행시간 측정 시작
         auto start = high_resolution_clock::now();
 
         auto brightness = gd.isBrightArea(frame);
@@ -120,7 +123,7 @@ int main() {
         cout << "brightness: "<< brightness << ", stddev: "<< stddev << "\n";
 
         // check foward brightness state, 차량 전방 밝기 상태와 표준 편차를 동시에 고려
-        // 밝으면서 표준편차가 적은 곳, 어두운데 표준편차가 큰 곳(태양에 의한 과도한 노출 조정 or 그림자 고려려)
+        // 밝은 곳 or 표준편차가 큰 곳(태양에 의한 과도한 노출 조정 or 그림자 고려)
         if (brightness > brightness_threshold || stddev > stddev_threshold) {
             // intensity, saturation, contrast에 따라 gphoto map 생성
             cv::Mat gphoto = gd.computePhotometricMap(frame);
@@ -131,52 +134,43 @@ int main() {
             // gphoto, ggeo map에 따라 priority 부여
             cv::Mat priority = gd.computePriorityMap(gphoto, ggeo);
 
+            // priority에 따라 찾은 glare의 좌표 반환
             glarePos = gp.getPriorityBasedGlareCenter(priority, gphoto, ggeo, gd);
 
+            // glare detect 시간 측정 종료
             auto detect_end = high_resolution_clock::now();
             auto detect_duration = duration_cast<milliseconds>(detect_end - start).count();
             cout << "Detect Processing time: " << detect_duration << " ms\n"; 
-
+            
+            // glare의 좌표가 유효한 지 여부에 따라 queue에 저장 후 glare의 평균 좌표 반환
             pq.push(glarePos);
-            if (pq.shouldReturnAverage() == 1) {
+            if (pq.shouldReturnAverage() == 1) {        // glare가 존재하는 경우. glare의 평균 좌표 최신화
                 avg_glarePos = pq.getAvgCoord();
             }
-            else if (pq.shouldReturnAverage() == 0){
-                // continue;// 여기에 continue를 넣으면 왜 안될까요??? 공백 처리하면 원하는 동작 실행 됩니다.
+            else if (pq.shouldReturnAverage() == 0){    // glare가 잠깐 사라진 경우. 바로 선바이저가 접히는 것을 방지하기 위해 glare 평균 좌표 유지
+                 
             }
-            else{
+            else{                                       // glare가 존재하지 않는 경우. 유효하지 않은 좌표 반환
                 avg_glarePos = {-1, -1};
             }
 
             cout << pq.shouldReturnAverage() << "\n";
 
-            // // 시각화를 위한 threshold 기반 glare mask 생성
-            // cv::Mat glare_map = gd.combineMaps(gphoto, ggeo);
-            // cv::Mat glare_mask;
-            // cv::threshold(glare_map, glare_mask, 0.8, 1.0, cv::THRESH_BINARY);
-
-            // gd.drawGlareContours(glare_mask, frame);  // Draw enclosing contours from mask
-
+            // debug_mode가 True, glare의 좌표가 양수(카메라 프레임 내에 존재할 경우)일 때 원으로 표시
             if (debug_mode && glarePos.x > 0) {
-                // ✅ glarePos를 기반으로 imshow에 원 표시
                 cv::circle(frame, glarePos, 10, cv::Scalar(0, 255, debug_color), 2);
                 cout << "Detected glare position: (" << glarePos.x << ", " << glarePos.y << ")\n";
                 cout << "Detected avg glare position: (" << avg_glarePos.x << ", " << avg_glarePos.y << ")\n";
 
             } 
-            // else {
-
-            //     cv::circle(frame, avg_glarePos, 10, cv::Scalar(0, 255, debug_color), 2);
-            //     cout << "Detected glare position: (" << avg_glarePos.x << ", " << avg_glarePos.y << ")\n";
-            // }
 
         } 
+        // 어두운 곳이면서 표준 편차가 작은 곳(카메라가 빛을 정면으로 촬영하지 않을 때)
         else{
-            avg_glarePos.x = -1;
-            avg_glarePos.y = -1;
+            avg_glarePos = {-1, -1};
         }
 
-        // 종현이 형 코드 추가
+        // 카메라 기준 coord -> 운전자 기준 coord로 변환
         bool glare_is_detected_flag = (avg_glarePos.x != -1 && avg_glarePos.y != -1);
         std::pair<int, int> grid_coords = {-1, -1};
         std::vector<int> bit_list_for_grid;
@@ -196,6 +190,7 @@ int main() {
                 cerr << "[Main] Error: Failed to send command to Arduino via SerialCom module." << endl;
         }
 
+        // 실행시간 측정 종료
         auto end = high_resolution_clock::now();
         auto duration = duration_cast<milliseconds>(end - start).count();    
 
@@ -311,6 +306,7 @@ int main() {
 
     bool first_frame = true;
     Mat frame;
+    // minicom 설정과 동일하게 맞춰보기
 
     while (true) {
         cap >> frame;
