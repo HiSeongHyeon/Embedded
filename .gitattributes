@@ -7,7 +7,6 @@
 *.json    text eol=lf
 *.yaml    text eol=lf
 *.yml     text eol=lf
-
 # === 바이너리 파일은 Git에서 diff 무시 ===
 *.png     binary
 *.jpg     binary
@@ -18,13 +17,25 @@
 *.exe     binary
 *.so      binary
 *.dll     binary
-
 # === 기본값: 모든 텍스트 파일은 LF 강제 ===
 *         text=auto eol=lf
-
 # === 문서와 코드 형식 diff 개선 ===
 *.md      diff=markdown
 *.py      diff=python
 *.c       diff=cpp
 *.cpp     diff=cpp
 *.h       diff=cpp
+# === 캐드 파일 관련 ===
+*.ipt filter=lfs diff=lfs merge=lfs -text
+*.iam filter=lfs diff=lfs merge=lfs -text
+*.stp filter=lfs diff=lfs merge=lfs -text
+*.sldprt filter=lfs diff=lfs merge=lfs -text
+*.sldasm filter=lfs diff=lfs merge=lfs -text
+*.step filter=lfs diff=lfs merge=lfs -text
+*.x_t filter=lfs diff=lfs merge=lfs -text
+*.fres filter=lfs diff=lfs merge=lfs -text
+*.fins filter=lfs diff=lfs merge=lfs -text
+*.fsat filter=lfs diff=lfs merge=lfs -text
+*.ftes filter=lfs diff=lfs merge=lfs -text
+*.fwiz filter=lfs diff=lfs merge=lfs -text
+*.fmsh filter=lfs diff=lfs merge=lfs -text
