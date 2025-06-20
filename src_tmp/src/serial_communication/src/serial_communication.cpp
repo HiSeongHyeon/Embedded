@@ -17,7 +17,17 @@ namespace SerialCom {
                   << strerror(errno) << std::endl;
         return false;
       }
-      fcntl(serial_port_fd, F_SETFL, 0); // 블로킹 모드로 다시 설정
+      
+      int flags = fcntl(serial_port_fd_internal, F_GETFL, 0);
+      if (flags == -1) {
+          std::cerr << "SerialCom Error getting flags: " << strerror(errno) << std::endl;
+          close(serial_port_fd_internal); serial_port_fd_internal = -1; return false;
+      }
+      flags |= O_NONBLOCK; // 기존 플래그에 논블로킹 플래그를 추가(OR 연산)
+      if (fcntl(serial_port_fd_internal, F_SETFL, flags) == -1) {
+          std::cerr << "SerialCom Error setting non-blocking: " << strerror(errno) << std::endl;
+          close(serial_port_fd_internal); serial_port_fd_internal = -1; return false;
+      }
 
       struct termios tty;
       if (tcgetattr(serial_port_fd, &tty) != 0) {
@@ -74,11 +84,21 @@ namespace SerialCom {
                   << std::endl;
         return false;
       }
-      int n = write(serial_port_fd, &data_byte, 1);
+      
+      int n = write(serial_port_fd_internal, &data_byte, 1);
+
       if (n < 0) {
-        std::cerr << "SerialCom Error writing to serial port: " << strerror(errno)
-                  << std::endl;
-        return false;
+        // 쓰기에 실패한 경우
+        if (errno == EAGAIN || errno == EWOULDBLOCK) {
+            // 이 경우는 오류가 아니라, "지금 당장은 쓸 수 없음 (버퍼가 꽉 찼거나 장치가 바쁨)"을 의미.
+            // 데이터는 전송되지 않았지만, 프로그램이 멈추지는 않음.
+            std::cout << "[SerialCom Info] write would block. Data not sent." << std::endl;
+            return false; // 전송 실패로 간주
+        } else {
+            // 그 외의 심각한 쓰기 오류
+            std::cerr << "SerialCom Error writing to serial port: " << strerror(errno) << std::endl;
+            return false;
+        }
       }
       return (n == 1);
     }
