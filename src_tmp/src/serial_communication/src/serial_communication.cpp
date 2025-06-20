@@ -28,16 +28,31 @@ namespace SerialCom {
         return false;
       }
       cfmakeraw(&tty);
+      // 입력 플래그 (c_iflag)
+      tty.c_iflag |= IGNBRK;  // BREAK 신호 무시
+      tty.c_iflag &= ~(BRKINT | PARMRK | ISTRIP | INLCR | IGNCR | ICRNL | IXON | IXOFF); // 나머지 비활성화
+
+      // 출력 플래그 (c_oflag)
+      tty.c_oflag &= ~OPOST; // 출력 후처리 비활성화
+      tty.c_oflag &= ~ONLCR; // NL -> CR-NL 변환 방지
+
+      // 제어 플래그 (c_cflag)
+      tty.c_cflag |= CRTSCTS; // 하드웨어 흐름 제어 활성화
       tty.c_cflag |= (CLOCAL | CREAD);
       tty.c_cflag &= ~CSIZE;
       tty.c_cflag |= CS8;
       tty.c_cflag &= ~PARENB;
       tty.c_cflag &= ~CSTOPB;
-      tty.c_cflag &= ~CRTSCTS;
-      tty.c_lflag &= ~(ICANON | ECHO | ECHOE | ISIG);
-      tty.c_oflag &= ~OPOST;
-      tty.c_cc[VMIN] = 0;
-      tty.c_cc[VTIME] = 1;
+
+      // 로컬 플래그 (c_lflag)
+      tty.c_lflag &= ~(ICANON | ECHO | ECHOE | ECHONL | ISIG | IEXTEN); // 에코 및 특수 처리 비활성화
+
+      // 제어 문자 (c_cc)
+      // minicom 설정과 동일하게 맞춰보기
+      tty.c_cc[VMIN] = 1;  // 최소 1바이트를 읽을 때까지 대기
+      tty.c_cc[VTIME] = 5; // 문자 간 타임아웃 0.5초
+
+      // Baud Rate 설정
       cfsetispeed(&tty, baud_rate);
       cfsetospeed(&tty, baud_rate);
       tcflush(serial_port_fd, TCIFLUSH);
