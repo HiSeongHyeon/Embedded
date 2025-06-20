@@ -8,7 +8,7 @@
 
 namespace SerialCom {
 
-    int serial_port_fd = -1; // 파일 범위 정적 변수로 선언하여 외부 직접 접근 방지
+    static int serial_port_fd = -1; // 파일 범위 정적 변수로 선언하여 외부 직접 접근 방지
 
     bool initialize(const std::string &port_name, speed_t baud_rate) {
       serial_port_fd = open(port_name.c_str(), O_RDWR | O_NOCTTY | O_NDELAY);
@@ -18,15 +18,15 @@ namespace SerialCom {
         return false;
       }
       
-      int flags = fcntl(serial_port_fd_internal, F_GETFL, 0);
+      int flags = fcntl(serial_port_fd, F_GETFL, 0);
       if (flags == -1) {
           std::cerr << "SerialCom Error getting flags: " << strerror(errno) << std::endl;
-          close(serial_port_fd_internal); serial_port_fd_internal = -1; return false;
+          close(serial_port_fd); serial_port_fd = -1; return false;
       }
       flags |= O_NONBLOCK; // 기존 플래그에 논블로킹 플래그를 추가(OR 연산)
-      if (fcntl(serial_port_fd_internal, F_SETFL, flags) == -1) {
+      if (fcntl(serial_port_fd, F_SETFL, flags) == -1) {
           std::cerr << "SerialCom Error setting non-blocking: " << strerror(errno) << std::endl;
-          close(serial_port_fd_internal); serial_port_fd_internal = -1; return false;
+          close(serial_port_fd); serial_port_fd = -1; return false;
       }
 
       struct termios tty;
