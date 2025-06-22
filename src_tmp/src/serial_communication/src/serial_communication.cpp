@@ -63,8 +63,8 @@ namespace SerialCom {
         serial_port_fd = -1;
         return false;
       }
-      std::cout << "[SerialCom] Port " << port_name
-                << " opened at specified baud rate." << std::endl;
+      // std::cout << "[SerialCom] Port " << port_name
+      //           << " opened at specified baud rate." << std::endl;
       return true;
     }
 
@@ -129,12 +129,12 @@ namespace SerialCom {
         }
         // Glare 미감지 시 command_byte는 0 (접기) 유지
 
-        std::cout << "[SerialCom] Sending Command Byte (binary): ";
-        for (int i = 7; i >= 0; --i) {
-            std::cout << ((command_byte >> i) & 1);
-            if (i == 4) std::cout << "_";
-        }
-        std::cout << " (Decimal: " << static_cast<int>(command_byte) << ")" << std::endl;
+        // std::cout << "[SerialCom] Sending Command Byte (binary): ";
+        // for (int i = 7; i >= 0; --i) {
+        //     std::cout << ((command_byte >> i) & 1);
+        //     if (i == 4) std::cout << "_";
+        // }
+        // std::cout << " (Decimal: " << static_cast<int>(command_byte) << ")" << std::endl;
 
         return sendByte(command_byte); // 내부 sendByte 함수 호출
     }

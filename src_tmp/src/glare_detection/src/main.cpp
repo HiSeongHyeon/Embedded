@@ -1,5 +1,5 @@
 #define CAMERA
-#define VIDEO
+// #define VIDEO
 #define GRID_TEST // 그리드 좌표 테스트 모듈 활성화
 
 #ifdef CAMERA
@@ -62,7 +62,7 @@ int main() {
     // 노출 수동 조절 코드
     const char* cmd =
         "libcamera-vid -t 0 -n --width 1280 --height 480 "
-        "--shutter 7000 --gain 1.0 --awbgains 1.2,1.2 "
+        "--shutter 6000 --gain 1.0 --awbgains 1.2,1.2 "
         "--codec mjpeg -o - 2>/dev/null | "
         "stdbuf -o0 ffmpeg -f mjpeg -analyzeduration 10000000 -probesize 10000000 -i - -f image2pipe -vcodec copy -";
 
@@ -120,7 +120,7 @@ int main() {
         auto brightness = gd.isBrightArea(frame);
         auto stddev = gd.isStandardArea(frame);
 
-        cout << "brightness: "<< brightness << ", stddev: "<< stddev << "\n";
+        // cout << "brightness: "<< brightness << ", stddev: "<< stddev << "\n";
 
         // check foward brightness state, 차량 전방 밝기 상태와 표준 편차를 동시에 고려
         // 밝은 곳 or 표준편차가 큰 곳(태양에 의한 과도한 노출 조정 or 그림자 고려)
@@ -148,17 +148,17 @@ int main() {
                 avg_glarePos = pq.getAvgCoord();
             }
             else if (pq.shouldReturnAverage() == 0){    // glare가 잠깐 사라진 경우. 바로 선바이저가 접히는 것을 방지하기 위해 glare 평균 좌표 유지
-                 
+                continue;
             }
             else{                                       // glare가 존재하지 않는 경우. 유효하지 않은 좌표 반환
                 avg_glarePos = {-1, -1};
             }
 
-            cout << pq.shouldReturnAverage() << "\n";
+            // cout << pq.shouldReturnAverage() << "\n";
 
             // debug_mode가 True, glare의 좌표가 양수(카메라 프레임 내에 존재할 경우)일 때 원으로 표시
             if (debug_mode && glarePos.x > 0) {
-                cv::circle(frame, glarePos, 10, cv::Scalar(0, 255, debug_color), 2);
+                cv::circle(frame, glarePos, 10, cv::Scalar(255, 0, debug_color), 2);
                 cout << "Detected glare position: (" << glarePos.x << ", " << glarePos.y << ")\n";
                 cout << "Detected avg glare position: (" << avg_glarePos.x << ", " << avg_glarePos.y << ")\n";
 
@@ -195,18 +195,18 @@ int main() {
         auto duration = duration_cast<milliseconds>(end - start).count();    
 
 
-        if (glare_is_detected_flag && grid_coords.first != -1) {
-          cout << " | Grid Coords: (" << grid_coords.first << ", "
-               << grid_coords.second << ")\n";
-          cout << " | BitList: [";
-          for (size_t i = 0; i < bit_list_for_grid.size(); ++i) {
-            cout << bit_list_for_grid[i]
-                 << (i == bit_list_for_grid.size() - 1 ? "" : ", ");
-          }
-          cout << "]\n";
-        } else if (glare_is_detected_flag) {
-          cout << " | Grid Coords: Transform Failed\n";
-        }
+        // if (glare_is_detected_flag && grid_coords.first != -1) {
+        //   cout << " | Grid Coords: (" << grid_coords.first << ", "
+        //        << grid_coords.second << ")\n";
+        //   cout << " | BitList: [";
+        //   for (size_t i = 0; i < bit_list_for_grid.size(); ++i) {
+        //     cout << bit_list_for_grid[i]
+        //          << (i == bit_list_for_grid.size() - 1 ? "" : ", ");
+        //   }
+        //   cout << "]\n";
+        // } else if (glare_is_detected_flag) {
+        //   cout << " | Grid Coords: Transform Failed\n";
+        // }
 
         cout << "Total Processing time: " << duration << " ms\n";
 
