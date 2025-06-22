@@ -8,7 +8,7 @@
 
 namespace SerialCom {
 
-    static int serial_port_fd = -1; // 파일 범위 정적 변수로 선언하여 외부 직접 접근 방지
+    int serial_port_fd = -1; // 파일 범위 정적 변수로 선언하여 외부 직접 접근 방지
 
     bool initialize(const std::string &port_name, speed_t baud_rate) {
       serial_port_fd = open(port_name.c_str(), O_RDWR | O_NOCTTY | O_NDELAY);
@@ -85,7 +85,7 @@ namespace SerialCom {
         return false;
       }
       
-      int n = write(serial_port_fd_internal, &data_byte, 1);
+      int n = write(serial_port_fd, &data_byte, 1);
 
       if (n < 0) {
         // 쓰기에 실패한 경우
