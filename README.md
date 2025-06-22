@@ -1,6 +1,6 @@
 # 🚗 SunVisorRobot: 차량 운전자 눈부심 방지 선바이저 로봇
 
-**차량 운전 중 발생하는 태양 및 강한 조명으로 인한 눈부심(Glare)을 자동으로 감지하고, 지능적으로 선바이저를 제어하여 운전자의 시야를 안전하게 확보하는 임베디드시스템 프로젝트입니다.**
+**차량 운전 중 발생하는 태양 및 강한 조명으로 인한 눈부심(Glare)을 자동으로 감지하고, 지능적으로 선바이저를 제어하여 운전자의 시야를 안전하게 확보하는 임베디드 시스템 프로젝트입니다.**
 
 ## 🌟 프로젝트 목표
 
@@ -28,7 +28,7 @@
         *   비트 1-0: 로우(Row, y) 좌표 (0-2, 2비트)
 4.  **모터 제어 모듈 (Arduino):**
     *   RPi로부터 수신된 1바이트 명령을 해석합니다.
-    *   해석된 그리드 좌표에 따라 스텝 모터(좌우 이동)와 서보 모터(상하 각도 조절)를 제어하여 선바이저를 해당 위치로 이동시킵니다.
+    *   해석된 그리드 좌표에 따라 스텝 모터와 서보 모터를 제어하여 선바이저를 해당 위치로 이동시킵니다.
 
 ## 🌳 프로젝트 디렉토리 구조
 
@@ -38,31 +38,33 @@ Embedded/
 ├── README.md
 │
 ├── src/ # 소스 코드 루트
-│ ├── glare_detection/ # C++ Glare 감지 및 메인 제어 루프
+│ ├── glare_detection/ # Glare 감지 및 메인 제어 루프
 │ │ ├── CMakeLists.txt
 │ │ ├── include/ (SunDetector.h, return_position.h)
 │ │ └── src/ (SunDetector.cpp, return_position.cpp, main.cpp)
 │ │
-│ ├── coordinate_mapping/ # C++ 좌표 변환 모듈
+│ ├── coordinate_mapping/ # 좌표 변환 모듈
 │ │ ├── CMakeLists.txt
 │ │ ├── include/ (config.hpp, coordinates.hpp, get_grid_size.hpp)
 │ │ └── src/ (coordinates.cpp, test_visualization.cpp 등)
 │ │
-│ └── serial_communication/ # C++ 시리얼 통신 모듈
+│ └── serial_communication/ # 시리얼 통신 모듈
 │   ├── CMakeLists.txt
 │   ├── include/ (serial_communication.hpp)
 │   └── src/ (serial_communication.cpp)
+│
+├── CAD/ # HW 제작 CAD 파일
 │  
-└── arduino_control/ # Arduino 모터 제어 코드
+└── arduino/ # Arduino 모터 제어 코드
 ```
 
 ## ⚙️ 개발 환경 및 필수 설치 요소
 
 *   **하드웨어:**
-    *   Raspberry Pi 4B (또는 상위 모델)
+    *   Raspberry Pi 5 (또는 상위 모델)
     *   Raspberry Pi 카메라 모듈 v3
     *   Arduino Mega 2560 (또는 호환 보드)
-    *   스텝 모터 및 드라이버 (A4988 등)
+    *   스텝 모터 및 드라이버
     *   서보 모터
     *   기타 전원 공급 장치, 회로 부품
 *   **소프트웨어 (Raspberry Pi):**
@@ -72,7 +74,7 @@ Embedded/
     *   OpenCV 개발 라이브러리 (`libopencv-dev`)
     *   Python 3.x (주로 빌드 스크립트, 테스트 또는 유틸리티용)
     *   pip (Python 패키지 관리자)
-    *   PlatformIO Core (Arduino 코드 빌드 및 업로드용, `pip install platformio`로 설치)
+    *   PlatformIO Core (예시/Arduino 코드 빌드 및 업로드용, `pip install platformio`로 설치)
     *   Git
 *   **소프트웨어 (개발용 PC - 선택적):**
     *   C++ IDE (VS Code with CMake Tools, CLion 등)
@@ -92,7 +94,7 @@ sudo apt update
 sudo apt install build-essential g++ cmake libopencv-dev python3-opencv python3-pip git
 ```
 
-**3. 개별 빌드 및 실행 (자동 스크립트 대신 수동으로 진행할 경우):**
+**3. 개별 빌드 및 실행 (수동으로 진행할 경우):**
 
 *   **C++ 모듈 (Glare 감지 및 메인 제어):**
     ```bash
@@ -101,27 +103,28 @@ sudo apt install build-essential g++ cmake libopencv-dev python3-opencv python3-
     cmake ..
     make
     # 실행 (예시)
-    ./src/glare_detection/solarTracker
+    ./src/glare_detection/glareTracker
     ```
 
 *   **실행 전 아래와 같은 Arduino 업데이트 필수**
     ```bash
     cd arduino
-    pio run # 빌드 (예시)
+    pio run # 빌드 (예시/다른 IDE 사용 가능)
     pio run -t upload # 업로드 (포트 자동 감지 또는 platformio.ini에 지정)
     ```
 
-## 📋 주요 기능
+## 📽️ 시연 영상
+프로젝트의 작동 방식을 아래 영상으로 확인해보세요.
 
-*   **Glare 감지:** [구현된 핵심 내용 요약]
-*   **좌표 변환:** [구현된 핵심 내용 요약]
-*   **RPi-Arduino 통신:** [구현된 핵심 내용 요약, 프로토콜 명시]
-*   **모터 제어 (Arduino):** [구현된 핵심 내용 요약]
+[![시연 영상](https://img.youtube.com/vi/IC63PYgABys/0.jpg)](https://www.youtube.com/watch?v=IC63PYgABys)
+
+## 👏 포스터
+![포스터](assets/poster.png)
 
 ## 🤝 팀원
 
-*   **최성현 (팀장):**
-*   **이종현:**
-*   **오정택:**
-*   **조경호:**
-*   **조민규:**
+*   **최성현 (팀장): doq1324@uos.ac.kr**
+*   **이종현: whdgus985@uos.ac.kr**
+*   **오정택: wjdxor9534@uos.ac.kr**
+*   **조경호: vitus00@uos.ac.kr**
+*   **조민규: gyull911@uos.ac.kr**
