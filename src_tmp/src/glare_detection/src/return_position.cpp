@@ -14,6 +14,7 @@ void position_queue::push(const Coord& coord) {
     if (queue_.size() >= max_size_) {
         queue_.pop_front();
     }
+    std::cout << "[DEBUG] queue size: " << queue_.size() << std::endl;
 
     queue_.emplace_back(coord, valid);
 }
