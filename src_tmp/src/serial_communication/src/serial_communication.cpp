@@ -87,6 +87,9 @@ namespace SerialCom {
       
       int n = write(serial_port_fd, &data_byte, 1);
 
+      // tcflush(serial_port_fd, TCOFLUSH); // 출력 버퍼 (TX) 비우기
+
+
       if (n < 0) {
         // 쓰기에 실패한 경우
         if (errno == EAGAIN || errno == EWOULDBLOCK) {
