@@ -28,6 +28,8 @@ using namespace std::chrono;
 void cleanup_serial_main_handler() { SerialCom::closePort(); }
 
 int main() {
+    cv::setNumThreads(cv::getNumberOfCPUs()); // CPU 최대 활용
+
     glare_position gp;
     glare_detector gd;
     position_queue pq;
@@ -35,14 +37,14 @@ int main() {
     cv::Point2f glarePos;
     cv::Point2f avg_glarePos = {0, 0};
 
-    // 시리얼 포트 초기화
-    const char *arduino_port = "/dev/ttyACM0"; // <<--- 실제 Arduino 포트
-    if (!SerialCom::initialize(arduino_port, B115200)) { // Baud rate 115200
-        cerr << "Error: Failed to initialize serial port " << arduino_port << endl;
-    return -1; // 시리얼 포트 열기 실패 시 종료
-    }
-    atexit(cleanup_serial_main_handler); // 프로그램 종료 시 포트 자동 닫기 등록
-    cout << "[Serial] Port " << arduino_port << " opened successfully." << endl;
+    // // 시리얼 포트 초기화
+    // const char *arduino_port = "/dev/ttyACM0"; // <<--- 실제 Arduino 포트
+    // if (!SerialCom::initialize(arduino_port, B9600)) { // Baud rate 9600
+    //     cerr << "Error: Failed to initialize serial port " << arduino_port << endl;
+    // return -1; // 시리얼 포트 열기 실패 시 종료
+    // }
+    // atexit(cleanup_serial_main_handler); // 프로그램 종료 시 포트 자동 닫기 등록
+    // cout << "[Serial] Port " << arduino_port << " opened successfully." << endl;
 
     bool debug_mode = true;
     // 0.2 -> 0.8
@@ -57,10 +59,11 @@ int main() {
 
     // 노출 수동 조절 코드
     const char* cmd =
-        "libcamera-vid -t 0 -n --width 1280 --height 480 "
+        "libcamera-vid -t 0 -n --width 1280 --height 480 --framerate 10 " 
         "--shutter 6000 --gain 1.0 --awbgains 1.2,1.2 "
         "--codec mjpeg -o - 2>/dev/null | "
-        "stdbuf -o0 ffmpeg -f mjpeg -analyzeduration 10000000 -probesize 10000000 -i - -f image2pipe -vcodec copy -";
+        "stdbuf -o0 ffmpeg -loglevel quiet -f mjpeg -analyzeduration 10000000 -probesize 10000000 "
+        "-i - -f image2pipe -vcodec copy -";
 
 
     FILE* pipe = popen(cmd, "r");
@@ -149,7 +152,7 @@ int main() {
             else{                                       // glare가 존재하지 않는 경우. 유효하지 않은 좌표 반환
                 avg_glarePos = {-1, -1};
             }
-
+            
             // cout << pq.shouldReturnAverage() << "\n";
 
             // debug_mode가 True, glare의 좌표가 양수(카메라 프레임 내에 존재할 경우)일 때 원으로 표시
@@ -171,6 +174,9 @@ int main() {
         std::pair<int, int> grid_coords = {-1, -1};
         std::vector<int> bit_list_for_grid;
 
+        static bool prev_detected_flag = false;
+        static std::pair<int, int> prev_grid_coords = {-2, -2};
+
         if (glare_is_detected_flag) {
             std::pair<double, double> sun_center_for_transform = {
                 static_cast<double>(avg_glarePos.x),
@@ -181,10 +187,18 @@ int main() {
             bit_list_for_grid = bit_list;
         }
 
-        // Arduino 명령 바이트 생성 및 전송
-        if (!SerialCom::sendCommandToArduino(glare_is_detected_flag, grid_coords)) {
+        // // Arduino 명령 바이트 생성 및 전송
+        // if (!SerialCom::sendCommandToArduino(glare_is_detected_flag, grid_coords)) {
+        //         cerr << "[Main] Error: Failed to send command to Arduino via SerialCom module." << endl;
+        // }
+
+        if (glare_is_detected_flag != prev_detected_flag || grid_coords != prev_grid_coords) {
+            if (!SerialCom::sendCommandToArduino(glare_is_detected_flag, grid_coords)) {
                 cerr << "[Main] Error: Failed to send command to Arduino via SerialCom module." << endl;
-        }
+            }
+            prev_detected_flag = glare_is_detected_flag;
+            prev_grid_coords = grid_coords;
+        } //asd
 
         // 실행시간 측정 종료
         auto end = high_resolution_clock::now();
@@ -208,12 +222,15 @@ int main() {
         #endif
 
         imshow("glare Detection", frame);
+        
+        buffer.clear();
 
         if (waitKey(1) == 27) {
             glare_is_detected_flag = 0;
             SerialCom::sendCommandToArduino(glare_is_detected_flag, grid_coords);
             break;
         }
+        frame.release();
     }
 
     pclose(pipe);
